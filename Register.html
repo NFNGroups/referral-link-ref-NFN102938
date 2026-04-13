@@ -32,7 +32,7 @@
   -ms-tap-highlight-color: transparent;
   tap-highlight-color: transparent;
 }
-  
+
 .remember-me-box {
   width: 18px;
   height: 18px;
@@ -133,31 +133,20 @@
   margin: 0 auto 20px;
   border-radius: 50%;
   background: #001F3F;
-
   display: flex;
-  flex-direction: column;        /* ✅ STACK VERTICALLY */
-  justify-content: center;       /* ✅ CENTER TOP–BOTTOM */
-  align-items: center;           /* ✅ CENTER LEFT–RIGHT */
-
+  justify-content: center;
+  align-items: center;
   animation: glowColor 3s infinite alternate;
 }
   
 .logo {
-  font-size: 50px;              /* ✅ BIG but fits */
+  font-size: 48px;
   font-weight: 900;
   font-family: 'Montserrat', sans-serif;
   color: white;
-  text-align: center;
-  letter-spacing: 1.5px;        /* ✅ reduced spacing */
-  line-height: 1.2;
-  max-width: 160px;             /* ✅ keep inside circle */
-  word-wrap: break-word;
-
+  letter-spacing: 5px;
   animation: neonPulse 1.5s infinite alternate, float 2s ease-in-out infinite;
-  text-shadow:
-    0 0 4px #fff,
-    0 0 8px #00c6ff,
-    0 0 16px #0072ff;
+  text-shadow: 0 0 5px #fff,0 0 10px #fff,0 0 20px #00c6ff,0 0 40px #0072ff,0 0 80px #0072ff;
 }
 
 @keyframes float {
@@ -285,10 +274,12 @@
 <body>
     
   <div id="snow"></div>
+  
   <div class="login">
   <div class="login">    
 <div class="logo-container">
-  <div class="logo">N.F.N</div>
+  <h1 class="logo">
+    <span>N</span><span>F</span><span>N</span>
 </div>
     
   <div class="light-line">
@@ -299,13 +290,7 @@
     <span></span>
 </div>
   
-    <div class="container" id="registerPage"> 
-      <div style="text-align: right; margin-bottom: 10px;">
-  <a href="javascript:void(0)" id="regGuideLink" 
-     style="color:#0072ff; font-weight:600; text-decoration:underline; cursor:pointer;">
-    Registration / log in  Manual Guide
-  </a>
-</div>
+    <div class="container" id="registerPage">    
       <form id="registerForm">    
         <div class="input-box">    
           <i class="fa fa-envelope"></i>    
@@ -327,9 +312,7 @@
         <input type="hidden" id="actualCaptcha" />    
         <button type="submit" class="btn register-btn">Register now</button>    
       </form>    
-         <button class="btn download-btn" onclick="goToDownload()">
-  Download APP
-</button>
+      <button class="btn download-btn">Download APP</button>    
       <div class="bottom-text">Have an account? <a id="toLogin">Login</a></div>    
     </div>    
 
@@ -403,10 +386,6 @@ function generateCaptchaCode() {
   document.getElementById("actualCaptcha").value = code;    
 }    
   
-    function goToDownload() {
-  showMsg("Please login first to download the app");
-}
-    
   const rememberMe = document.getElementById('rememberMe');    
 const rememberCheck = document.getElementById('rememberCheck');    
 let remember = false;  
@@ -433,23 +412,19 @@ const loginPage = document.getElementById('loginPage');
 document.getElementById('toLogin').addEventListener('click', ()=>{registerPage.classList.add('hidden'); loginPage.classList.remove('hidden');});    
 document.getElementById('toRegister').addEventListener('click', ()=>{loginPage.classList.add('hidden'); registerPage.classList.remove('hidden');});    
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCquibboUmxu5JoDxwmAqwDq-L0Zt2R_jY",
-  authDomain: "nfn---groups.firebaseapp.com",
-  projectId: "nfn---groups",
-  storageBucket: "nfn---groups.firebasestorage.app",
-  messagingSenderId: "495471996349",
-  appId: "1:495471996349:web:4f87f3fba91a26bf91f6d4",
-};
+const firebaseConfig = {    
+  apiKey:"AIzaSyA7DA2nxR5WvPwwL_QW5HgSaW7JxQqPeIs",    
+  authDomain:"nfn-groups.firebaseapp.com",    
+  projectId:"nfn-groups",    
+  storageBucket:"nfn-groups.appspot.com",    
+  messagingSenderId:"276039205386",    
+  appId:"1:276039205386:web:cd7c5a7248f264427815f3"    
+};    
 
 firebase.initializeApp(firebaseConfig);    
 const auth = firebase.auth();    
 const db = firebase.firestore();    
 
-    firebase.auth().onAuthStateChanged((user) => {
-  // This keeps auth state updated
-});
-    
 document.getElementById("registerForm").addEventListener("submit", function(e){    
   e.preventDefault();    
   const email = document.getElementById("emailInput");    
@@ -472,34 +447,10 @@ document.getElementById("registerForm").addEventListener("submit", function(e){
       }).catch((err)=>{    
         showMsg("Error sending verification: " + err.message);    
       });    
-    // Create referral code from email name + random numbers
-const emailName = email.value.split("@")[0]; // josephblessing123
-const shortName = emailName.replace(/[^a-zA-Z]/g, "").substring(0, 6) || "User";
-const referralCode = shortName.toUpperCase() + Math.floor(1000 + Math.random() * 9000);
-// Example: JOSEPH4821  
-
-db.collection("users").doc(user.uid).set({      
-  email: email.value,      
-  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-  referralCode: referralCode, // Unique code for this user
-  referredBy: localStorage.getItem("referredBy") || null // Track who referred this user
-});
-      const referredBy = localStorage.getItem("referredBy");
-
-if (referredBy) {
-  // Add this user UID to the referrer's document
-  db.collection("users").where("referralCode", "==", referredBy).get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        db.collection("users").doc(doc.id).update({
-          referrals: firebase.firestore.FieldValue.arrayUnion(user.uid)
-        });
-      });
-    });
-
-  // Remove referral from local storage
-  localStorage.removeItem("referredBy");
-}
+      db.collection("users").doc(user.uid).set({    
+        email: email.value,    
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()    
+      });    
       highlightInput(email,false,true); highlightInput(password,false,true); highlightInput(confirmPassword,false,true);    
     })    
     .catch((error) => {    
@@ -511,13 +462,6 @@ if (referredBy) {
   const loginEmail = document.getElementById("loginEmail");
 const fingerprintBtn = document.getElementById("fingerprintBtn");
 
-// Function to copy the referral link to clipboard
-function copyReferralLink() {
-  const input = document.getElementById("userReferralLink");
-  input.select();  // Select the input content
-  document.execCommand("copy");  // Copy the selected content
-  showMsg("Referral link copied!", true);  // Show a success message
-}
 // Show fingerprint button only when email is typed
 loginEmail.addEventListener("input", () => {
     if (loginEmail.value.trim() !== "") {
@@ -605,34 +549,14 @@ document.getElementById('loginForm').addEventListener('submit', function(e){
 
     const email = loginEmail.value.trim();
     const password = loginPassword.value.trim();
-    const referredBy = localStorage.getItem('referredBy');
 
-localStorage.setItem('userProfile', JSON.stringify({
-  email: email,
-  referralCode: localStorage.getItem('referralCode'),
-  referredBy: referredBy || null,
-  createdAt: new Date().toISOString()
-}));
-  
     if(email === "" || password === ""){
         showMsg("Email and password required");
         return;
     }
 
     auth.signInWithEmailAndPassword(email, password)
-.then((userCredential) => {
-
-    const user = userCredential.user;
-
-    // ❌ BLOCK LOGIN IF EMAIL IS NOT VERIFIED
-    if (!user.emailVerified) {
-        showMsg("❌ Please verify your email before logging in");
-        auth.signOut();
-        return;
-    }
-      
-      localStorage.removeItem("referredBy");
-      
+    .then(() => {
         // Save password for fingerprint login
         localStorage.setItem("fingerprintPassword", password);
         localStorage.setItem("registeredEmail", email);
@@ -655,31 +579,6 @@ localStorage.setItem('userProfile', JSON.stringify({
         else if(error.code === "auth/user-not-found") showMsg("Email not registered");
         else showMsg("Login failed");
     });
-});
-</script>
-    <script>
-const params = new URLSearchParams(window.location.search);
-const referrer = params.get('ref');
-
-if (referrer) {
-  localStorage.setItem('referredBy', referrer);
-}
-    // Check if user arrived with a referral link
-const urlParams = new URLSearchParams(window.location.search);
-const ref = urlParams.get("ref");
-
-// Only store if no referral is stored yet
-if (ref && !localStorage.getItem("referredBy")) {
-  localStorage.setItem("referredBy", ref);
-}
-
-// Optional: test in console
-const storedRef = localStorage.getItem("referredBy");
-if (storedRef) {
-  console.log("User was referred by:", storedRef);
-}
-    document.getElementById("regGuideLink").addEventListener("click", () => {
-    window.location.href = "Registration User Guide Manual .html";
 });
 </script>
 </body>    
