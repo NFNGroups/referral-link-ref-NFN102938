@@ -1,0 +1,307 @@
+<!DOCTYPE html>    
+<html lang="en">    
+<head>    
+<meta charset="UTF-8">    
+<meta name="viewport" content="width=device-width, initial-scale=1.0">    
+<title>Withdrawal</title>    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    
+<style>    
+body{    
+    margin:0;    
+    font-family: Arial, sans-serif;    
+    background:#f2f2f2;    
+}    
+
+.top-header{
+display:flex;
+align-items:center;
+padding:18px 15px 10px 15px;
+font-size:22px;
+font-weight:bold;
+}
+
+.top-header i{
+font-size:20px;
+margin-right:10px;
+cursor:pointer;
+}
+
+.card{
+background:#fff;
+margin:10px;
+padding:25px;
+border-radius:18px;
+box-shadow:0 3px 15px rgba(0,0,0,0.08);
+}
+
+label{
+font-weight:bold;
+display:block;
+margin-top:18px;
+margin-bottom:8px;
+}
+
+input{
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #ddd;
+font-size:16px;
+box-sizing:border-box;
+}
+
+input[readonly]{
+background:#f5f5f5;
+color:#555;
+}
+
+.amount-grid{
+display:grid;
+grid-template-columns: repeat(3, 1fr);
+gap:5px;
+margin-top:15px;
+}
+
+.amount-btn{
+padding:14px;
+border-radius:14px;
+border:1px solid #ccc;
+background:#fff;
+cursor:pointer;
+font-size:12px;
+}
+
+.amount-btn.active{
+background:#14a6b8;
+color:#fff;
+border:none;
+}
+
+.submit-btn{
+margin-top:30px;
+width:100%;
+padding:16px;
+border:none;
+border-radius:14px;
+background:#14a6b8;
+color:#fff;
+font-size:18px;
+cursor:pointer;
+}
+
+/* PROFESSIONAL RED/GREEN POPUP */
+.popup-box {
+position: fixed;
+top: 30%;
+left: 50%;
+transform: translate(-50%, -50%) scale(0.7);
+padding: 25px 30px;
+border-radius: 12px;
+box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+text-align: center;
+font-weight: bold;
+font-size: 16px;
+z-index: 9999;
+min-width: 280px;
+animation: popupShow 0.3s forwards;
+color:#fff;
+background:black;
+}
+
+@keyframes popupShow {
+to {
+transform: translate(-50%, -50%) scale(1);
+}
+}
+
+.popup-box button {
+padding:8px 15px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+font-weight:bold;
+margin-top:10px;
+}
+
+.green-btn{
+background:#28a745;
+color:#fff;
+}
+.green-btn:hover{
+background:#218838;
+}
+
+.red-btn{
+background:#dc3545;
+color:#fff;
+}
+.red-btn:hover{
+background:#b02a37;
+}
+</style>
+</head>    
+
+<body>    
+
+<div class="top-header">    
+<i class="fa-solid fa-chevron-left" id="levelBack"></i>    
+Withdrawal    
+</div>    
+
+<div class="card">    
+
+<label>Withdrawal Balance</label>    
+<input type="text" id="balance" readonly>    
+
+<label>Withdrawal Amount</label>    
+<input type="text" id="amount" readonly>    
+
+<div class="amount-grid">    
+<button class="amount-btn">5,000</button>    
+<button class="amount-btn">10,000</button>    
+<button class="amount-btn">20,000</button>    
+<button class="amount-btn">50,000</button>    
+<button class="amount-btn">100,000</button>    
+<button class="amount-btn">200,000</button>    
+<button class="amount-btn">500,000</button>    
+<button class="amount-btn">1,000,000</button>    
+<button class="amount-btn">2,000,000</button>    
+<button class="amount-btn">5,000,000</button>    
+<button class="amount-btn">10,000,000</button>    
+<button class="amount-btn">100,000,000</button>    
+</div>    
+
+<label>Withdrawal Account</label>    
+<input type="text" id="withdrawAccount" readonly placeholder="Bind bank card first">    
+
+<label>Withdrawal Handling Fee</label>    
+<input type="text" id="fee" readonly>    
+
+<label>Enter your 6-digit withdrawal PIN</label>    
+<input type="password" maxlength="6" placeholder="Enter your 6-digit withdrawal PIN">    
+
+<button class="submit-btn">Submit</button>
+
+</div>    
+
+<script>    
+const amountInput = document.getElementById("amount");    
+const feeInput = document.getElementById("fee");    
+const buttons = document.querySelectorAll(".amount-btn");    
+const submitBtn = document.querySelector(".submit-btn");    
+const withdrawAccount = document.getElementById("withdrawAccount");
+
+document.getElementById("balance").value = "100,000,000";    
+document.getElementById("levelBack").onclick = ()=> window.location.href = "my project.html";    
+
+/* ===== LOAD BANK CARD FROM PERSONAL INFORMATION (RESTORED) ===== */
+const savedBank = localStorage.getItem("bankInfo");
+if(savedBank){
+  const bank = JSON.parse(savedBank);
+  withdrawAccount.value = bank.bankName + " • " + bank.accountNumber;
+}else{
+  withdrawAccount.value = "No bank card bound";
+}
+
+/* Amount buttons */    
+buttons.forEach(btn=>{    
+    btn.addEventListener("click", function(){    
+        buttons.forEach(b=>b.classList.remove("active"));    
+        this.classList.add("active");    
+    
+        let value = this.innerText.replace(/,/g,'');    
+        amountInput.value = this.innerText;    
+        calculateFee(value);    
+    });    
+});    
+    
+function calculateFee(amount){    
+    if(!amount || isNaN(amount)){    
+        feeInput.value="";    
+        return;    
+    }    
+    let fee = amount * 0.1;    
+    feeInput.value = Number(fee).toLocaleString();    
+}    
+    
+/* ========================= */    
+/* WITHDRAWAL LOGIC */    
+submitBtn.addEventListener("click", function(){    
+    
+    const enteredAmount = amountInput.value.trim();    
+    const enteredPin = document.querySelector('input[type="password"]').value.trim();    
+    const savedPin = localStorage.getItem("withdrawPin");    
+    const savedBank = localStorage.getItem("bankInfo");    
+    
+    if(!enteredAmount){    
+        showProfessionalPopup("Please select withdrawal amount");    
+        return;    
+    }    
+    
+    if(enteredPin.length !==6){    
+        showProfessionalPopup("Enter 6 digit PIN");    
+        return;    
+    }    
+    
+    if(!savedPin){    
+        showPinNotSetPopup();    
+        return;    
+    }    
+    
+    if(!savedBank || savedBank.trim()==="" || savedBank==="null"){    
+        showBankNotSetPopup();    
+        return;    
+    }    
+    
+    if(enteredPin !== savedPin){    
+        showProfessionalPopup("Incorrect PIN");    
+        return;    
+    }    
+    
+    showProfessionalPopup("Withdrawal Successful", true);    
+});    
+    
+function showProfessionalPopup(message, success=false){    
+    const box = document.createElement("div");    
+    box.className = "popup-box";    
+    box.style.background = success ? "#28a745" : "#dc3545";    
+    box.innerText = message;    
+    document.body.appendChild(box);    
+    setTimeout(()=>box.remove(), 3000);    
+}    
+    
+function showPinNotSetPopup(){    
+    const box = document.createElement("div");    
+    box.className = "popup-box";    
+    box.innerHTML = `    
+        <p>Withdrawal PIN not set. Please set your withdrawal PIN in Personal Information</p>    
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">    
+            <button class="green-btn" id="goPersonal">Go to Personal Information</button>    
+            <button class="red-btn" id="exitBtn">Exit</button>    
+        </div>    
+    `;    
+    document.body.appendChild(box);    
+    
+    document.getElementById("goPersonal").onclick = ()=> window.location.href = "personal information.html";    
+    document.getElementById("exitBtn").onclick = ()=> window.location.href = "my project.html";    
+}    
+    
+function showBankNotSetPopup(){    
+    const box = document.createElement("div");    
+    box.className = "popup-box";    
+    box.innerHTML = `    
+        <p>Bank Card Not Binded,Please bind your bank card in Personal Information</p>    
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">    
+            <button class="green-btn" id="goPersonalBank">Go to Personal Information</button>    
+            <button class="red-btn" id="exitBank">Exit</button>    
+        </div>    
+    `;    
+    document.body.appendChild(box);    
+    
+    document.getElementById("goPersonalBank").onclick = ()=> window.location.href = "personal information.html";    
+    document.getElementById("exitBank").onclick = ()=> window.location.href = "my project.html";    
+}    
+</script>    
+
+</body>    
+</html>

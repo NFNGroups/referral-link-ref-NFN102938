@@ -1,0 +1,686 @@
+<!DOCTYPE html>    
+<html lang="en">    
+<head>    
+  <meta charset="UTF-8" />    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>    
+  <title>Register/Login Page with Firebase Email</title>    
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"/>    
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>      
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>      
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>      
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>      
+
+  <style>    
+    body { margin: 0; background: linear-gradient(to bottom, #001F3F, #fff); font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }    
+    .container { background: #fff; padding: 30px 20px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }    
+    .input-box { position: relative; margin-bottom: 20px; }    
+    .input-box input { width: 100%; padding: 15px 15px 15px 45px; font-size: 16px; border-radius: 12px; border: none; background: #f0f0f0; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; transition: border 0.3s; }    
+    .input-box i, .input-box span { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); font-size: 18px; color: #888; }    
+    .input-box .eye-icon { position: absolute; top: 50%; left:250px; right: 10px; transform: translateY(-50%); font-size: 18px; color: blue; cursor: pointer; }    
+    .captcha-wrapper { display: flex; align-items: center; justify-content: space-between; }    
+    .captcha-code { font-weight: bold; font-size: 18px; color: #000; background-color: #fff; padding: 8px 12px; border: 1px solid #ccc; border-radius: 10px; letter-spacing: 3px; margin-left: 10px; user-select: none; }    
+    .btn { width: 100%; padding: 15px; font-size: 18px; border: none; border-radius: 30px; cursor: pointer; margin-bottom: 10px; }    
+    .register-btn, .login-btn { background: linear-gradient(to right, #00c6ff, #0072ff); color: white; }    
+    .download-btn { background: none; border: 2px solid #00c6ff; color: #0072ff; }    
+    .bottom-text { text-align: center; margin-top: 15px; }    
+    .bottom-text a { color: #0072ff; text-decoration: none; cursor: pointer; }    
+    .remember-forgot { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 14px; }    
+    .remember-me { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; color: #333; }    
+    .remember-me, .remember-me-box {
+  -webkit-tap-highlight-color: transparent; /* Remove blue highlight on mobile */
+  -moz-tap-highlight-color: transparent;
+  -ms-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+  
+.remember-me-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #888;
+  border-radius: 4px;
+  background: #ffffff;
+
+  /* Remove outline if focused */
+  outline: none;
+
+  /* Prevent text selection */
+  user-select: none;
+
+  /* Press-down and bounce animation */
+  transition: background 0.3s, transform 0.1s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Press effect: scale down for vibration feel */
+.remember-me-box:active {
+  transform: scale(0.7);
+  transition: transform 0.05s ease-in;
+}
+
+/* Bounce back smoothly when activated */
+.remember-me-box.active {
+  background: yellow;
+  animation: bounce 0.15s ease-out;
+}
+
+@keyframes bounce {
+  0%   { transform: scale(0.7); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+    .forgot-password a { color: #0072ff; text-decoration: none; cursor: pointer; }    
+    .msg { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); color: #fff; padding: 10px 15px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease; }    
+    .msg.success { background: #388e3c; }    
+    .msg.error { background: #d32f2f; }    
+    .msg span { font-weight: bold; }    
+    .hidden { display: none; }    
+    .input-error { border: 2px solid #d32f2f !important; }    
+    .input-success { border: 2px solid #388e3c !important; }    
+    @keyframes fadeIn { from {opacity:0; transform:translate(-50%,20px);} to {opacity:1; transform:translate(-50%,0);} }    
+
+  /* Circle background for logo */
+.logo-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: #001F3F;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 0 20px #0072ff;
+}
+
+/* Lights around the circle */
+.lights-wrapper .light {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: red;
+  top: 50%;
+  left: 50%;
+  transform-origin: -100px 0; /* distance from center */
+  animation: blink 2s infinite;
+  animation-delay: calc(var(--i) * 0.3s);
+}
+
+/* Rotate each light around circle */
+.lights-wrapper .light:nth-child(1) { transform: rotate(0deg) translateX(100px); }
+.lights-wrapper .light:nth-child(2) { transform: rotate(45deg) translateX(100px); }
+.lights-wrapper .light:nth-child(3) { transform: rotate(90deg) translateX(100px); }
+.lights-wrapper .light:nth-child(4) { transform: rotate(135deg) translateX(100px); }
+.lights-wrapper .light:nth-child(5) { transform: rotate(180deg) translateX(100px); }
+.lights-wrapper .light:nth-child(6) { transform: rotate(225deg) translateX(100px); }
+.lights-wrapper .light:nth-child(7) { transform: rotate(270deg) translateX(100px); }
+.lights-wrapper .light:nth-child(8) { transform: rotate(315deg) translateX(100px); }
+
+/* Blinking / changing colors */
+@keyframes glowColor {
+  0%, 100% { box-shadow: 0 0 20px #0072ff; }
+  25% { box-shadow: 0 0 20px #00ffea; }
+  50% { box-shadow: 0 0 20px #ff00ff; }
+  75% { box-shadow: 0 0 20px #ffea00; }
+}
+
+.logo-container {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: #001F3F;
+
+  display: flex;
+  flex-direction: column;        /* ✅ STACK VERTICALLY */
+  justify-content: center;       /* ✅ CENTER TOP–BOTTOM */
+  align-items: center;           /* ✅ CENTER LEFT–RIGHT */
+
+  animation: glowColor 3s infinite alternate;
+}
+  
+.logo {
+  font-size: 50px;              /* ✅ BIG but fits */
+  font-weight: 900;
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  text-align: center;
+  letter-spacing: 1.5px;        /* ✅ reduced spacing */
+  line-height: 1.2;
+  max-width: 160px;             /* ✅ keep inside circle */
+  word-wrap: break-word;
+
+  animation: neonPulse 1.5s infinite alternate, float 2s ease-in-out infinite;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 8px #00c6ff,
+    0 0 16px #0072ff;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-1deg); }
+  100% { transform: translateY(0px) rotate(1deg); }
+}
+.light {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform-origin: -90px 0;
+  animation: blink 2s infinite;
+  animation-delay: calc(var(--i) * 0.3s); /* already staggered */
+}
+
+@keyframes blink {
+  0%, 100% { background-color: red; box-shadow: 0 0 12px red; }
+  25% { background-color: yellow; box-shadow: 0 0 12px yellow; }
+  50% { background-color: green; box-shadow: 0 0 12px green; }
+  75% { background-color: blue; box-shadow: 0 0 12px blue; }
+}
+
+.light:nth-child(1) { animation-duration: 1.8s; }
+.light:nth-child(2) { animation-duration: 2.2s; }
+.light:nth-child(3) { animation-duration: 2s; }
+.light:nth-child(4) { animation-duration: 1.5s; }
+.light:nth-child(5) { animation-duration: 2.3s; }
+.light:nth-child(6) { animation-duration: 1.9s; }
+.light:nth-child(7) { animation-duration: 2.1s; }
+.light:nth-child(8) { animation-duration: 1.7s; }
+
+@keyframes blink {
+  0%,100% { background-color: red; box-shadow: 0 0 10px red; }
+  25% { background-color: yellow; box-shadow: 0 0 10px yellow; }
+  50% { background-color: green; box-shadow: 0 0 10px green; }
+  75% { background-color: blue; box-shadow: 0 0 10px blue; }
+}
+  
+    /* ✅ Loader style */
+    #loader {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+      color: #333;
+      font-size: 22px;
+      font-weight: 600;
+      gap: 10px;
+    }
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #eee;
+      border-top: 6px solid #0072ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+
+#snow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image: url('snow1.png'), url('snow2.png'), url('snow3.png');
+  background-size: 300px, 200px, 150px;
+  animation: snow 20s linear infinite;
+}
+
+@keyframes snow {
+  0% { background-position: 0 0, 0 -50px, 0 -100px; }
+  100% { background-position: 0 1000px, 0 950px, 0 900px; }
+}
+  
+  .snow {
+  background-image: url('snow1.png'), url('snow2.png'), url('snow3.png');
+  animation: snow 10s linear infinite;
+}
+  
+  .light-line {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  margin-top: 30px;
+}
+
+.light-line span {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 0 10px #fff, 0 0 20px #fff;
+  animation: move 3s linear infinite;
+}
+
+.light-line span:nth-child(1) { left: 0%; animation-delay: 0s; }
+.light-line span:nth-child(2) { left: 20%; animation-delay: .3s; }
+.light-line span:nth-child(3) { left: 40%; animation-delay: .6s; }
+.light-line span:nth-child(4) { left: 60%; animation-delay: .9s; }
+.light-line span:nth-child(5) { left: 80%; animation-delay: 1.2s; }
+
+@keyframes move {
+  0% { transform: translateY(0px); opacity: .4; }
+  50% { transform: translateY(-10px); opacity: 1; }
+  100% { transform: translateY(0px); opacity: .4; }
+}
+  </style>    
+</head>    
+
+<body>
+    
+  <div id="snow"></div>
+  <div class="login">
+  <div class="login">    
+<div class="logo-container">
+  <div class="logo">N.F.N</div>
+</div>
+    
+  <div class="light-line">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+  
+    <div class="container" id="registerPage"> 
+      <div style="text-align: right; margin-bottom: 10px;">
+  <a href="javascript:void(0)" id="regGuideLink" 
+     style="color:#0072ff; font-weight:600; text-decoration:underline; cursor:pointer;">
+    Registration / log in  Manual Guide
+  </a>
+</div>
+      <form id="registerForm">    
+        <div class="input-box">    
+          <i class="fa fa-envelope"></i>    
+          <input type="email" id="emailInput" placeholder="Please enter your email" required />    
+        </div>    
+        <div class="input-box">    
+          <i class="fa fa-lock"></i>    
+          <input type="password" id="passwordInput" placeholder="Please enter the login password" required />    
+        </div>    
+        <div class="input-box">    
+          <i class="fa fa-lock"></i>    
+          <input type="password" id="confirmPasswordInput" placeholder="Please confirm your password" required />    
+        </div>    
+        <div class="input-box captcha-wrapper">    
+          <span>🔢</span>    
+          <input type="text" id="userCaptchaInput" placeholder="Enter the verification code" required />    
+          <div class="captcha-code" id="captchaCode">0000</div>    
+        </div>    
+        <input type="hidden" id="actualCaptcha" />    
+        <button type="submit" class="btn register-btn">Register now</button>    
+      </form>    
+         <button class="btn download-btn" onclick="goToDownload()">
+  Download APP
+</button>
+      <div class="bottom-text">Have an account? <a id="toLogin">Login</a></div>    
+    </div>    
+
+    <div class="container hidden" id="loginPage">    
+      <form id="loginForm">    
+        <div class="input-box">    
+          <i class="fa fa-envelope"></i>    
+          <input type="email" id="loginEmail" placeholder="Please enter your email" required />    
+        </div>    
+        <div class="input-box">    
+          <i class="fa fa-lock"></i>    
+          <input type="password" id="loginPassword" placeholder="Password" required />    
+          <i class="fas fa-eye eye-icon" id="togglePassword"></i>    
+        </div>    
+        <div class="remember-forgot">    
+          <div class="remember-me" id="rememberMe">    
+            <div class="remember-me-box" id="rememberCheck"></div>
+            Remember Me    
+          </div>    
+          <div class="forgot-password"><a href="https://wa.me/2349070689879?text=Hello,%20I%20would%20like%20to%20respectfully%20request%20assistance%20with%20resetting%20my%20NFN%20Groups%20Login%20password" target="_blank">Forgot Password?</a></div>    
+        </div>    
+        <button type="submit" class="btn login-btn">Login</button>  
+        <!-- Fingerprint Login Button (Hidden Until Email Entered) -->
+<button id="fingerprintBtn" 
+        style="
+        width:120px;
+        height:120px;
+        border-radius:50%;
+        background:#28a745;
+        color:white;
+        border:none;
+        font-size:16px;
+        font-weight:bold;
+        margin:10px auto;
+        display:none;
+        cursor:pointer;
+        display:flex;
+        justify-content:center;
+        align-items:center;">
+  Use Fingerprint As Password
+</button>
+      </form>    
+      <div class="bottom-text">Don’t have an account? <a id="toRegister">Register</a></div>    
+    </div>    
+  </div>    
+
+  <!-- ✅ Loader (added only this block) -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <div id="loaderText">Welcome to NFN</div>
+  </div>
+
+ <script>
+function showMsg(text, success=false){    
+  let msg = document.createElement("div");    
+  msg.className = "msg " + (success ? "success" : "error");    
+  msg.innerHTML = `<span>${success ? "✅" : "❌"}</span> ${text}`;    
+  document.body.appendChild(msg);    
+  setTimeout(()=>msg.remove(), 3000);    
+}    
+
+function highlightInput(input, isError, isSuccess=false){    
+  input.classList.remove("input-error","input-success");    
+  if(isError) input.classList.add("input-error");    
+  else if(isSuccess) input.classList.add("input-success");    
+}    
+
+function generateCaptchaCode() {    
+  const code = Math.floor(1000 + Math.random() * 9000);    
+  document.getElementById("captchaCode").textContent = code;    
+  document.getElementById("actualCaptcha").value = code;    
+}    
+  
+    function goToDownload() {
+  showMsg("Please login first to download the app");
+}
+    
+  const rememberMe = document.getElementById('rememberMe');    
+const rememberCheck = document.getElementById('rememberCheck');    
+let remember = false;  
+  
+window.onload = function () {
+  generateCaptchaCode();
+
+  const savedEmail = localStorage.getItem("rememberedEmail");
+  const savedPassword = localStorage.getItem("rememberedPassword");
+  const savedCheckbox = localStorage.getItem("rememberCheckbox");
+
+  if (savedEmail && savedPassword && savedCheckbox === "true") {
+    document.getElementById("loginEmail").value = savedEmail;
+    document.getElementById("loginPassword").value = savedPassword;
+    rememberCheck.classList.add("active");
+    remember = true;
+  } else {
+    remember = false;
+  }
+};
+
+const registerPage = document.getElementById('registerPage');    
+const loginPage = document.getElementById('loginPage');    
+document.getElementById('toLogin').addEventListener('click', ()=>{registerPage.classList.add('hidden'); loginPage.classList.remove('hidden');});    
+document.getElementById('toRegister').addEventListener('click', ()=>{loginPage.classList.add('hidden'); registerPage.classList.remove('hidden');});    
+
+const firebaseConfig = {    
+  apiKey:"AIzaSyA7DA2nxR5WvPwwL_QW5HgSaW7JxQqPeIs",    
+  authDomain:"nfn-groups.firebaseapp.com",    
+  projectId:"nfn-groups",    
+  storageBucket:"nfn-groups.appspot.com",    
+  messagingSenderId:"276039205386",    
+  appId:"1:276039205386:web:cd7c5a7248f264427815f3"    
+};    
+
+firebase.initializeApp(firebaseConfig);    
+const auth = firebase.auth();    
+const db = firebase.firestore();    
+
+    firebase.auth().onAuthStateChanged((user) => {
+  // This keeps auth state updated
+});
+    
+document.getElementById("registerForm").addEventListener("submit", function(e){    
+  e.preventDefault();    
+  const email = document.getElementById("emailInput");    
+  const password = document.getElementById("passwordInput");    
+  const confirmPassword = document.getElementById("confirmPasswordInput");    
+  const captchaInput = document.getElementById("userCaptchaInput");    
+  const actualCaptcha = document.getElementById("actualCaptcha").value;    
+
+  highlightInput(email,false); highlightInput(password,false); highlightInput(confirmPassword,false); highlightInput(captchaInput,false);    
+
+  if(password.value.length < 8){ highlightInput(password,true); showMsg("Password must be at least 8 characters"); return; }    
+  if(password.value !== confirmPassword.value){ highlightInput(password,true); highlightInput(confirmPassword,true); showMsg("Passwords do not match"); return; }    
+  if(captchaInput.value !== actualCaptcha){ highlightInput(captchaInput,true); showMsg("Incorrect verification code"); generateCaptchaCode(); return; }    
+
+  auth.createUserWithEmailAndPassword(email.value, password.value)    
+    .then((userCredential) => {    
+      const user = userCredential.user;    
+      user.sendEmailVerification().then(()=>{    
+        showMsg("Registration successful! Verification email sent.", true);    
+      }).catch((err)=>{    
+        showMsg("Error sending verification: " + err.message);    
+      });    
+    // Create referral code from email name + random numbers
+const emailName = email.value.split("@")[0]; // josephblessing123
+const shortName = emailName.replace(/[^a-zA-Z]/g, "").substring(0, 6) || "User";
+const referralCode = shortName.toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+// Example: JOSEPH4821  
+
+db.collection("users").doc(user.uid).set({      
+  email: email.value,      
+  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  referralCode: referralCode, // Unique code for this user
+  referredBy: localStorage.getItem("referredBy") || null // Track who referred this user
+});
+      const referredBy = localStorage.getItem("referredBy");
+
+if (referredBy) {
+  // Add this user UID to the referrer's document
+  db.collection("users").where("referralCode", "==", referredBy).get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        db.collection("users").doc(doc.id).update({
+          referrals: firebase.firestore.FieldValue.arrayUnion(user.uid)
+        });
+      });
+    });
+
+  // Remove referral from local storage
+  localStorage.removeItem("referredBy");
+}
+      highlightInput(email,false,true); highlightInput(password,false,true); highlightInput(confirmPassword,false,true);    
+    })    
+    .catch((error) => {    
+      if(error.code === "auth/email-already-in-use"){ highlightInput(email,true); showMsg("This email is already registered. Try login."); }    
+      else{ showMsg(error.message); }    
+    });    
+});    
+
+  const loginEmail = document.getElementById("loginEmail");
+const fingerprintBtn = document.getElementById("fingerprintBtn");
+
+// Function to copy the referral link to clipboard
+function copyReferralLink() {
+  const input = document.getElementById("userReferralLink");
+  input.select();  // Select the input content
+  document.execCommand("copy");  // Copy the selected content
+  showMsg("Referral link copied!", true);  // Show a success message
+}
+// Show fingerprint button only when email is typed
+loginEmail.addEventListener("input", () => {
+    if (loginEmail.value.trim() !== "") {
+        fingerprintBtn.style.display = "flex";
+    } else {
+        fingerprintBtn.style.display = "none";
+    }
+});
+  
+const togglePassword = document.getElementById('togglePassword');    
+const loginPassword = document.getElementById('loginPassword');    
+togglePassword.addEventListener('click', ()=>{    
+  const type = loginPassword.getAttribute('type') === 'password' ? 'text' : 'password';    
+  loginPassword.setAttribute('type', type);    
+  togglePassword.classList.toggle('fa-eye-slash');    
+});      
+
+ rememberMe.addEventListener('click', () => {
+  remember = !remember;
+  if (remember) {
+    rememberCheck.classList.add("active");
+  } else {
+    rememberCheck.classList.remove("active");
+    // Remove saved credentials if unchecked
+    localStorage.removeItem("rememberedEmail");
+    localStorage.removeItem("rememberedPassword");
+    localStorage.removeItem("rememberCheckbox");
+  }
+});
+  
+ fingerprintBtn.addEventListener("click", async () => {
+    if (loginEmail.value.trim() === "") {
+        showMsg("Enter email first");
+        return;
+    }
+
+    const savedFingerprintPassword = localStorage.getItem("fingerprintPassword");
+
+    if (!savedFingerprintPassword) {
+        showMsg("Please login once with password first");
+        return;
+    }
+
+    try {
+        await navigator.credentials.create({
+            publicKey: {
+                challenge: new Uint8Array(32),
+                rp: { name: "NFN Login" },
+                user: {
+                    id: new Uint8Array(16),
+                    name: loginEmail.value,
+                    displayName: loginEmail.value
+                },
+                pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                authenticatorSelection: {
+                    authenticatorAttachment: "platform",
+                    userVerification: "required"
+                },
+                timeout: 60000
+            }
+        });
+
+        // ✅ Firebase login with saved password
+        auth.signInWithEmailAndPassword(loginEmail.value, savedFingerprintPassword)
+        .then(() => {
+            showMsg("Login successful via fingerprint!", true);
+            document.getElementById("loader").style.display = "flex";
+            setTimeout(() => {
+                window.location.href = "my project.html";
+            }, 3000);
+        })
+        .catch((error) => {
+            if(error.code === "auth/wrong-password") showMsg("Wrong password for this email");
+            else if(error.code === "auth/user-not-found") showMsg("Email not registered");
+            else showMsg("Login failed via fingerprint");
+        });
+
+    } catch (err) {
+        showMsg("Fingerprint cancelled");
+    }
+});
+  // Normal login form submission
+document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value.trim();
+    const referredBy = localStorage.getItem('referredBy');
+
+localStorage.setItem('userProfile', JSON.stringify({
+  email: email,
+  referralCode: localStorage.getItem('referralCode'),
+  referredBy: referredBy || null,
+  createdAt: new Date().toISOString()
+}));
+  
+    if(email === "" || password === ""){
+        showMsg("Email and password required");
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+.then((userCredential) => {
+
+    const user = userCredential.user;
+
+    // ❌ BLOCK LOGIN IF EMAIL IS NOT VERIFIED
+    if (!user.emailVerified) {
+        showMsg("❌ Please verify your email before logging in");
+        auth.signOut();
+        return;
+    }
+      
+      localStorage.removeItem("referredBy");
+      
+        // Save password for fingerprint login
+        localStorage.setItem("fingerprintPassword", password);
+        localStorage.setItem("registeredEmail", email);
+
+        // Remember me
+        if(remember){
+            localStorage.setItem("rememberedEmail", email);
+            localStorage.setItem("rememberedPassword", password);
+            localStorage.setItem("rememberCheckbox", "true");
+        }
+
+        showMsg("Login successful!", true);
+        document.getElementById("loader").style.display = "flex";
+        setTimeout(() => {
+            window.location.href = "my project.html";
+        }, 3000);
+    })
+    .catch((error) => {
+        if(error.code === "auth/wrong-password") showMsg("Wrong password");
+        else if(error.code === "auth/user-not-found") showMsg("Email not registered");
+        else showMsg("Login failed");
+    });
+});
+</script>
+    <script>
+const params = new URLSearchParams(window.location.search);
+const referrer = params.get('ref');
+
+if (referrer) {
+  localStorage.setItem('referredBy', referrer);
+}
+    // Check if user arrived with a referral link
+const urlParams = new URLSearchParams(window.location.search);
+const ref = urlParams.get("ref");
+
+// Only store if no referral is stored yet
+if (ref && !localStorage.getItem("referredBy")) {
+  localStorage.setItem("referredBy", ref);
+}
+
+// Optional: test in console
+const storedRef = localStorage.getItem("referredBy");
+if (storedRef) {
+  console.log("User was referred by:", storedRef);
+}
+    document.getElementById("regGuideLink").addEventListener("click", () => {
+    window.location.href = "Registration User Guide Manual .html";
+});
+</script>
+</body>    
+</html>

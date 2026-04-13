@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About NFN Watch & Earn</title>
+<style>
+  body {
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: #fff;
+    text-align: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .logo {
+    width: 120px;
+    height: 120px;
+    margin: auto;
+    margin-bottom: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 48px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    letter-spacing: 2px;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    max-width: 700px;
+    margin: auto;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .checkbox-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 10px;
+    font-size: 16px;
+    flex-wrap: wrap;
+  }
+
+  .terms-link {
+    color: #00ffff; /* blue */
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .btn {
+    padding: 14px 30px;
+    font-size: 18px;
+    font-weight:bold;
+    border:none;
+    border-radius: 10px;
+    background: #fff;
+    color: #0072ff;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 16px;
+  }
+
+  .btn:disabled {
+    background: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: #e0e0e0;
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size:24px; }
+    p { font-size:14px; }
+    .btn { font-size:16px; padding:12px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="logo">NFN</div>
+
+<h1>Welcome to NFN Watch & Earn</h1>
+
+<p>
+<strong>NFN Watch & Earn</strong> is a revolutionary mobile app that allows you to watch content and earn real rewards — all in one place! Whether you’re looking to discover engaging videos, complete daily tasks, or grow your network through referrals, NFN makes earning simple, fun, and rewarding.
+</p>
+
+<p>
+With NFN, you can:  
+✔ Earn every day by completing tasks and watching approved content  
+✔ Level up to unlock higher rewards  
+✔ Invite friends and grow your income with referral bonuses  
+✔ Easily recharge your wallet and manage your earnings  
+✔ Withdraw your balance securely to your bank account
+</p>
+
+<p>
+We designed NFN to be user-friendly, safe, and empowering — so you can turn your time and attention into real value.
+</p>
+
+<div class="checkbox-container">
+  <input type="checkbox" id="agreeCheckbox">
+  <label for="agreeCheckbox">
+    I accept and agree to the 
+    <span class="terms-link" onclick="window.open('Terms and Conditions.html','_blank')">Terms and Conditions</span>
+  </label>
+</div>
+
+<button id="continueBtn" class="btn" disabled>Continue</button>
+
+<script>
+  // Check if user has already agreed
+  if(localStorage.getItem('nfnAgreed') === 'true'){
+    window.location.href = 'Splash Screen.html';
+  }
+
+  const checkbox = document.getElementById('agreeCheckbox');
+  const continueBtn = document.getElementById('continueBtn');
+
+  // Enable button when checkbox is checked
+  checkbox.addEventListener('change', function(){
+    continueBtn.disabled = !this.checked;
+  });
+
+  continueBtn.addEventListener('click', function(){
+
+     // Save to localStorage
+    localStorage.setItem('nfnAgreed', 'true');
+
+   // Go to splash screen
+    window.location.href = 'Splash Screen.html';
+
+  });
+</script>
+
+</body>
+</html>

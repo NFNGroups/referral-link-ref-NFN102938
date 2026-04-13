@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recharge - SwiftPay</title>
+<style>
+  body {margin:0; font-family:Arial,sans-serif; background:#fff;}
+  .screen {max-width:420px; margin:0 auto; min-height:100vh; border:1px solid #ccc; display:flex; flex-direction:column;}
+
+   /* Header */
+  .header {display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;}
+  .header .back {font-size:20px; cursor:pointer;}
+  .header h2 {margin:0; font-size:18px; font-weight:bold;}
+  .header .record {font-size:14px; color:#666; cursor:pointer;}
+
+  /* Balance */
+  .balance {padding:5px; font-size:20px; font-weight:bold; color:#FFA000; text-align:center;}
+  .balance small {display:block; font-size:12px; color:#888;}
+
+  /* Form */
+  .form {padding:15px;}
+  .form-row {margin-bottom:15px;}
+  .form-row label {display:block; font-size:14px; margin-bottom:6px; color:#333;}
+  .form-row input[type=number] {
+    width:100%; padding:10px; font-size:15px;
+    border:1px solid #ccc; border-radius:6px; outline:none;
+  }
+
+  /* SwiftPay Option */
+  .channel-box {
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid #ccc; border-radius:6px; padding:12px;
+    cursor:pointer; transition:0.2s;
+  }
+  .channel-box.active {border-color:#00BCD4; background:#E0F7FA;}
+  .channel-name {font-size:15px; font-weight:bold;}
+  .custom-check {
+    width:20px; height:20px; border-radius:50%; border:2px solid #aaa;
+    display:flex; align-items:center; justify-content:center;
+    transition:0.2s;
+  }
+  .channel-box.active .custom-check {border-color:#00BCD4; background:#00BCD4; color:#fff;}
+
+  /* Buttons */
+  .buttons {padding:15px; display:flex; flex-direction:column; gap:15px;}
+  .btn {padding:12px; border-radius:6px; font-size:15px; border:none; cursor:pointer;}
+  .btn.primary {background:#00BCD4; color:#fff;}
+  .btn.outline {border:1px solid #00BCD4; background:#fff; color:#00BCD4;}
+
+  /* Footer warning */
+  .footer-warning {display:none; margin-top:auto; text-align:center; background:#d32f2f; color:#fff; font-size:13px; padding:8px;}
+
+  /* Page container */
+  .page {display:none; flex-direction:column; height:100%;}
+  .page.active {display:flex;}
+
+  /* Payment Page */
+  .payment-box {background:#fff; margin:15px; padding:15px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+  .payment-box h2 {margin:0;}
+  .copy-btn {background:#1976D2; color:#fff; padding:4px 10px; border:none; border-radius:6px; margin-left:6px; cursor:pointer; font-size:12px;}
+  .countdown {color:red; font-weight:bold;}
+
+  .guide {background:#fff; margin:15px; padding:15px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); flex:1; overflow-y:auto;}
+  .guide h3 {margin-top:0; text-align:center;}
+  .guide p {font-size:13px; margin:8px 0;}
+  .guide span {color:red; font-weight:bold;}
+
+  .confirm-btn {
+  width: calc(100% - 30px);
+  padding: 10px;
+  background: #1976D2;
+  color: #fff;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 15px auto;
+}
+  
+  /* Modal (Tips) */
+  .modal {
+    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
+  }
+  .modal-content {
+    background:#fff; padding:20px; border-radius:8px; width:90%; max-width:350px; text-align:center;
+  }
+  .modal-content h3 {margin-top:0; color:#333;}
+  .modal-content p {font-size:14px; color:#333;}
+  .modal-content span {color:red; font-weight:bold;}
+  .modal-content .btn-ok {
+    margin-top:15px; background:#1976D2; color:#fff;
+    border:none; padding:10px 20px; border-radius:6px; cursor:pointer;
+  }
+
+  /* Session ID Page */
+  .session-form {padding:20px;}
+  .name-row {display:flex; gap:10px;}
+  .name-row input {
+    flex:1; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px;
+  }
+  .session-form input {
+    width:100%; padding:10px; margin-top:12px; border:1px solid #ccc; border-radius:6px; font-size:14px;
+  }
+  .session-form button {
+    width:100%; padding:12px; margin-top:15px; background:#1976D2; color:#fff;
+    border:none; border-radius:8px; font-size:15px; cursor:pointer;
+  }
+
+  /* Waiting Page */
+  .steps {display:flex; justify-content:space-around; padding:15px; font-size:14px; font-weight:bold;}
+  .steps .done {color:#1976D2;}
+  .waiting-box {flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;}
+  .waiting-timer {font-size:28px; color:red; margin:10px 0;}
+
+  /* Success Page */
+  .success {flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column;}
+  .success h2 {color:green;}
+  .success button {
+    margin-top:20px; padding:12px 20px; background:#00BCD4; color:#fff; border:none; border-radius:6px; font-size:15px; cursor:pointer;
+  }
+
+  /* Error/Info Message */
+  .msg {
+    position:fixed; bottom:15px; left:50%; transform:translateX(-50%);
+    background:#d32f2f; color:#fff; padding:10px 15px; border-radius:6px;
+    font-size:14px; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    animation:fadeIn 0.3s ease;
+  }
+  .msg span {font-weight:bold;}
+  @keyframes fadeIn {from{opacity:0; transform:translate(-50%,20px);} to{opacity:1; transform:translate(-50%,0);}}
+  
+  * { box-sizing: border-box; }
+  .buttons button {
+  margin-bottom: 15px;
+}
+.buttons button:last-child {
+  margin-bottom: 0;
+}
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- Recharge Page -->
+  <div id="rechargePage" class="page active">
+    <div class="header">
+   <div class="back">&#x276E;</div>
+      <h2>Recharge</h2>
+      <div class="record">Recharge record</div>
+    </div>
+
+ <div class="balance">
+  NaN NGN
+  <small>Balance</small>
+</div>
+
+    <div class="form">
+      <div class="form-row">
+        <label for="amount">Recharge amount</label>
+        <input type="number" id="amount" placeholder="Enter amount" oninput="checkAmount()">
+      </div>
+
+      <div class="form-row">
+        <label>Recharge channel</label>
+        <div id="swiftpayBox" class="channel-box" onclick="toggleSwiftpay()">
+          <span class="channel-name">SwiftPay</span>
+          <div class="custom-check" id="swiftpayCheck">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn primary" onclick="rechargeNow()">Recharge now</button>
+      <button class="btn outline" onclick="window.location.href='my project.html'">Return</button>
+    </div>
+
+    <div class="footer-warning" id="warning">Single minimum amount is NGN 10,000.00</div>
+  </div>
+
+  <!-- Payment Page -->
+  <div id="paymentPage" class="page">
+    <div class="header">
+      <div class="back" onclick="goRecharge()">←</div>
+      <h2>Payment</h2>
+    </div>
+
+    <div class="payment-box">
+      <h2 id="payAmount">₦0.00</h2>
+      <p>Use this account for this transaction only<br>
+      Account expires within <span class="countdown" id="countdown">10:00</span></p>
+      <hr>
+      <p>Name: <span id="accountName"></span> <button class="copy-btn" onclick="copyText('accountName')">copy</button></p>
+      <p>Bank: <span id="bankName"></span> <button class="copy-btn" onclick="copyText('bankName')">copy</button></p>
+      <p>Account: <span id="accountNumber"></span> <button class="copy-btn" onclick="copyText('accountNumber')">copy</button></p>
+      <p>Amount: <span id="accountAmount"></span> <button class="copy-btn" onclick="copyText('accountAmount')">copy</button></p>
+      <p>Note: <span id="paymentNote"></span> <button class="copy-btn" onclick="copyText('paymentNote')">copy</button></p>
+    </div>
+
+    <div class="guide">
+      <h3>Payment Guide</h3>
+      <p>⚠ Please complete the payment within the specified time! <span>Otherwise your account will not be credited!</span></p>
+      <p>⚠ Please fill in the Note when transferring, <span>Otherwise it will not be automatically credited!</span></p>
+      <p>⚠ Do not transfer funds twice, do not save these accounts, <span>or you will lose your money!</span></p>
+      <p>⚠ After completing the payment, please click the button below and we will confirm your payment!</p>
+    </div>
+    <button class="confirm-btn" onclick="goSession()">I have made this bank transfer</button>
+  </div>
+
+  <!-- Session ID Page -->
+  <div id="sessionPage" class="page">
+    <div class="header">
+      <div class="back" onclick="goPayment()">←</div>
+      <h2>Payment Confirmation</h2>
+    </div>
+    <div class="session-form">
+      <div class="name-row">
+        <input type="text" id="firstName" placeholder="First Name">
+        <input type="text" id="lastName" placeholder="Last Name">
+      </div>
+      <input type="text" id="sessionId" placeholder="Or enter Session ID">
+      <button onclick="submitConfirmation()">Submit</button>
+    </div>
+  </div>
+
+  <!-- Waiting Page -->
+  <div id="waitingPage" class="page">
+    <div class="header">
+      <div class="back" onclick="goSession()">←</div>
+      <h2>Waiting</h2>
+    </div>
+    <div class="steps">
+      <div class="done">✔ Submit</div>
+      <div class="done">✔ Payment</div>
+      <div id="stepCompleted">3 Completed</div>
+    </div>
+    <div class="waiting-box">
+      <h2>Waiting for payment...</h2>
+      <div class="waiting-timer" id="waitingTimer">01:00</div>
+      <p>If you have paid, wait until we confirm pls.</p>
+    </div>
+  </div>
+
+  <!-- Success Page -->
+  <div id="successPage" class="page">
+    <div class="header">
+     <div class="back">←</div>
+      <h2>Success</h2>
+    </div>
+    <div class="success">
+      <h2>✅ Payment Completed</h2>
+      <p>Your recharge has been confirmed successfully.</p>
+      <button onclick="goHome()">Go to Home</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tips Modal -->
+<div id="tipsModal" class="modal">
+  <div class="modal-content">
+    <h3>Tips</h3>
+    <p>
+      After the payment is successful,<br>
+      <span>You must come back here and Click the "I have made this bank transfer"</span><br>
+      Then submit your Sender's Name or Session ID,<br>
+      Only then your money will reach your account.
+    </p>
+    <button class="btn-ok" onclick="closeTips()">OK</button>
+  </div>
+</div>
+
+<script>
+let swiftpaySelected = false;
+let accounts=[
+  {name:"Jonathan Fav", bank:"Kuda Bank", number:"9096993362"},
+  {name:"David Belingham", bank:"GTBank", number:"0134567890"},
+  {name:"Grace Ada", bank:"UBA", number:"1234567890"}
+];
+let countdownInterval;
+let waitingInterval;
+let currentAmount = 0;
+
+function showMsg(text, type = "error") {
+  let msg = document.createElement("div");
+  msg.className = "msg";
+
+  if (type === "success") {
+    msg.style.background = "#4CAF50"; // green
+    msg.innerHTML = `✓ ${text}`;
+  } else {
+    msg.style.background = "#d32f2f"; // red
+    msg.innerHTML = `❌ ${text}`;
+  }
+
+  document.body.appendChild(msg);
+  setTimeout(() => msg.remove(), 2000);
+}
+
+function goBack(){ switchPage('rechargePage'); }
+function goRecharge(){ switchPage('rechargePage'); }
+function goPayment(){ switchPage('paymentPage'); }
+function goSession(){ switchPage('sessionPage'); }
+function goHome(){ switchPage('rechargePage'); }
+  
+function generateNote(){
+  return "SP" + Math.floor(100000 + Math.random() * 900000);
+}
+  
+function switchPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toggleSwiftpay(){
+  swiftpaySelected = !swiftpaySelected;
+  let box = document.getElementById("swiftpayBox");
+  if(swiftpaySelected){ box.classList.add("active"); }
+  else { box.classList.remove("active"); }
+}
+
+function checkAmount(){
+  let amount = parseInt(document.getElementById("amount").value);
+  let warning = document.getElementById("warning");
+  if(amount && amount < 10000){ warning.style.display = "block"; }
+  else { warning.style.display = "none"; }
+}
+
+function rechargeNow(){
+  let amount = parseInt(document.getElementById("amount").value);
+
+  if(!amount || amount < 10000){
+    showMsg("Minimum recharge amount is NGN 10,000");
+    return;
+  }
+  if(!swiftpaySelected){
+    showMsg("Please select the Recharge channel");
+    return;
+  }
+
+  currentAmount = amount;
+  document.getElementById('tipsModal').style.display = 'flex';
+}
+
+function closeTips(){
+  document.getElementById('tipsModal').style.display = 'none';
+  updateAccount();
+  switchPage('paymentPage');
+}
+
+function updateAccount(){
+  let acc = accounts[Math.floor(Math.random()*accounts.length)];
+  let note = generateNote();
+
+  document.getElementById('payAmount').innerText = "₦" + currentAmount.toLocaleString();
+  document.getElementById('accountName').innerText = acc.name;
+  document.getElementById('bankName').innerText = acc.bank;
+  document.getElementById('accountNumber').innerText = acc.number;
+  document.getElementById('accountAmount').innerText = currentAmount;
+  document.getElementById('paymentNote').innerText = note;
+
+  startCountdown(600);
+}
+
+function copyText(id){
+  let text = document.getElementById(id).innerText;
+
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      showMsg("Copied", "success");
+    })
+    .catch(() => {
+      showMsg("Failed to copy", "error");
+    });
+}
+
+function startCountdown(seconds){
+  clearInterval(countdownInterval);
+  let timer=document.getElementById('countdown');
+  countdownInterval=setInterval(()=>{
+    let m=Math.floor(seconds/60);
+    let s=seconds%60;
+    timer.innerText=`${m}:${s<10?'0':''}${s}`;
+    if(seconds--<=0){
+      clearInterval(countdownInterval);
+      updateAccount();
+    }
+  },1000);
+}
+
+function submitConfirmation(){
+  let first=document.getElementById('firstName').value.trim();
+  let last=document.getElementById('lastName').value.trim();
+  let sid=document.getElementById('sessionId').value.trim();
+  if((first==="" || last==="") && sid===""){
+    showMsg("Enter First & Last Name or Session ID");
+    return;
+  }
+  startWaitingPage();
+}
+
+function startWaitingPage(){
+  switchPage('waitingPage');
+  let timer=document.getElementById('waitingTimer');
+  let stepCompleted=document.getElementById('stepCompleted');
+  let seconds=60;
+  clearInterval(waitingInterval);
+  waitingInterval=setInterval(()=>{
+    let m=Math.floor(seconds/60), s=seconds%60;
+    timer.innerText=`${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+    if(seconds--<=0){
+      clearInterval(waitingInterval);
+      stepCompleted.innerText="✔ Completed";
+      stepCompleted.classList.add("done");
+      switchPage('successPage');
+      setTimeout(()=>goHome(),10000);
+    }
+  },1000);
+}
+  // Go back to homepage when top-left arrow is clicked
+document.addEventListener('DOMContentLoaded', () => {
+  const topBack = document.querySelector('#rechargePage .back');
+  if (topBack) {
+    topBack.addEventListener('click', () => {
+      window.location.href = 'my project.html';
+    });
+  }
+});
+</script>
+</body>
+</html>

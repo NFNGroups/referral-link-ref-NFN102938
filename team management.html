@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Management – Referral Reward</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <style>
+    :root {
+      --gold: #f5c56b;
+      --silver: #cfd8dc;
+      --bronze: #f2a07b;
+      --card: #ffffff;
+      --muted: #8a8a8a;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0b0e1d, #14173a);
+      color: #111;
+    }
+    .app { max-width: 420px; margin: 0 auto; padding-bottom: 20px; }
+    .card { background: var(--card); border-radius: 18px; padding: 18px; margin: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+    .center { text-align: center; }
+    .muted { color: var(--muted); font-size: 14px; }
+    .team-title { font-size: 18px; font-weight: 600; }
+    .team-total { font-size: 34px; font-weight: 700; margin: 6px 0; }
+    .levels { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 12px; }
+    .level { border-radius: 18px; padding: 14px 8px; color: #000; font-weight: 600; }
+    .level span { display: block; font-size: 13px; font-weight: 500; }
+    .level-a { background: linear-gradient(#ffe9a8, var(--gold)); }
+    .level-b { background: linear-gradient(#eef3f6, var(--silver)); }
+    .level-c { background: linear-gradient(#ffd7c7, var(--bronze)); }
+    .invite { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+    .qr { width: 88px; height: 88px; border-radius: 10px; border: 2px dashed #ccc; display: grid; place-items: center; font-size: 12px; }
+    .link-wrapper { flex: 1; display: flex; flex-direction: column; }
+    #userReferralLink { font-size: 13px; word-break: break-all; background: #f4f6fa; padding: 8px; border-radius: 8px; border: 1px solid #ccc; outline: none; }
+    .copy { margin-top: 8px; display: inline-block; background: var(--gold); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; user-select: none; text-align: center; }
+    .banner { background: linear-gradient(135deg,#1a1f5c,#3b1a6b); color: #fff; border-radius: 16px; padding: 16px; text-align: center; font-weight: 700; }
+    .reward { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 14px 0; }
+    .reward-left { font-size: 14px; }
+    .reward-left b { color: var(--danger); }
+    .status { background: #bdbdbd; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+    .progress { height: 8px; background: #eee; border-radius: 10px; overflow: hidden; margin-top: 6px; }
+    .bar { height: 100%; background: var(--success); width: 0; }
+    .level-back-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  background:#eef6ff;
+  position: sticky; /* keeps it at the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.level-back-header i{
+  font-size:30px;
+  font-weight:900;
+  cursor:pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+/* Press down effect */
+.level-back-header i:active{
+  transform: translateY(3px) scale(0.95);
+  opacity: 0.7;
+}
+
+/* Optional: remove tap highlight on mobile */
+.level-back-header i {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+}
+  .qr img {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.qr-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.qr-modal img {
+  width: 250px;
+  height: 250px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 12px;
+}
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- Back Arrow Header -->
+<div class="level-back-header">
+  <i class="fa-solid fa-chevron-left" id="levelBack"></i>
+</div>
+  
+  <!-- TEAM MANAGEMENT -->
+  <div class="card center">
+    <div class="team-title">Total number of team members</div>
+    <div class="team-total" id="teamTotal">0</div>
+    <div class="muted">Level A: <span id="levelACount">0</span> &nbsp;&nbsp; Level B: <span id="levelBCount">0</span> &nbsp;&nbsp; Level C: <span id="levelCCount">0</span></div>
+    <div class="levels">
+      <div class="level level-a">Level A<span id="levelADisplay">0 people</span></div>
+      <div class="level level-b">Level B<span id="levelBDisplay">0 people</span></div>
+      <div class="level level-c">Level C<span id="levelCDisplay">0 people</span></div>
+    </div>
+  </div>
+
+  <!-- INVITE LINK -->
+  <div class="card">
+    <b>Invite Link</b>
+    <div class="invite">
+     <div class="qr" id="qrCode"></div>
+      <div class="link-wrapper">
+        <div class="muted">Scan QR code or copy link</div>
+        <input type="text" id="userReferralLink" placeholder="Login to see your link" readonly />
+        <div class="copy" onclick="copyReferralLink()">Copy Link</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qr-modal" id="qrModal">
+  <img id="qrBig">
+</div>
+  
+  <!-- REFERRAL CENTER -->
+  <div class="card">
+    <div class="banner">Referral Reward Center<br><span class="muted">Gift packs are sent continuously</span></div>
+    <p class="muted" style="margin-top:12px;">
+      When your A-level subordinates become full-time employees and reach the corresponding number, you will receive rewards.
+    </p>
+    <div class="reward">
+      <div class="reward-left"><b>2000</b> – Invite 2 A-level members on the same day</div>
+      <div class="status">Not completed</div>
+    </div>
+    <div class="reward">
+      <div class="reward-left"><b>5000</b> – Cumulative invitations this week (10 people)</div>
+      <div class="status">Not completed</div>
+    </div>
+    <div class="progress"><div class="bar" id="bar1" style="width:40%"></div></div>
+    <div class="reward">
+      <div class="reward-left"><b>20000</b> – Cumulative invitations this week (20 people)</div>
+      <div class="status">Not completed</div>
+    </div>
+    <div class="progress"><div class="bar" id="bar2" style="width:20%"></div></div>
+    <div class="reward">
+      <div class="reward-left"><b>50000</b> – Cumulative invitations this week (50 people)</div>
+      <div class="status">Not completed</div>
+    </div>
+    <div class="progress"><div class="bar" id="bar3" style="width:10%"></div></div>
+  </div>
+
+</div>
+
+<script>
+// For Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAC2V8ABkQKJNKvC_WnFSwPoPZrXpQ2gEM",
+  authDomain: "nfn--groups.firebaseapp.com",
+  projectId: "nfn--groups",
+  storageBucket: "nfn--groups.firebasestorage.app",
+  messagingSenderId: "225584952259",
+  appId: "1:225584952259:web:a1b4bfcdaa94527e940376"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // COPY REFERRAL LINK
+  function copyReferralLink() {
+  const input = document.getElementById("userReferralLink");
+
+  if (!input.value || input.value.includes("Login")) {
+    alert("No referral link available yet");
+    return;
+  }
+
+  navigator.clipboard.writeText(input.value)
+    .then(() => alert("Referral link copied!"))
+    .catch(() => {
+      input.select();
+      document.execCommand("copy");
+      alert("Referral link copied!");
+    });
+}
+
+  // AUTH STATE CHANGE
+  auth.onAuthStateChanged(user => {
+    if (!user) return;
+
+    db.collection("users").doc(user.uid).get().then(doc => {
+      if (!doc.exists) return;
+      let code = doc.data().referralCode;
+
+if (!code) {
+  // fallback → use email name
+  const email = doc.data().email || "user@email.com";
+  const name = email.split("@")[0];
+  code = name.replace(/[^a-zA-Z]/g, "").substring(0, 6).toUpperCase();
+}
+      const referrals = doc.data().referrals || [];
+
+      // Set referral link
+        const LIVE_DOMAIN = "https://nfn-groups.github.io/referral-link-ref-NFN102938/";
+const referralLink = `${LIVE_DOMAIN}?ref=${code}`;
+document.getElementById("userReferralLink").value = referralLink;
+// Generate QR Code
+const qrDiv = document.getElementById("qrCode");
+qrDiv.innerHTML = ""; // clear old QR
+new QRCode(qrDiv, {
+  text: referralLink,
+  width: 88,
+  height: 88
+});
+      
+      // Update team counts
+      let levelACount=0, levelBCount=0, levelCCount=0;
+      referrals.forEach((ref, idx)=>{
+        if(idx<5) levelACount++;
+        else if(idx<10) levelBCount++;
+        else levelCCount++;
+      });
+
+      document.getElementById('teamTotal').innerText = referrals.length;
+      document.getElementById('levelACount').innerText = levelACount;
+      document.getElementById('levelBCount').innerText = levelBCount;
+      document.getElementById('levelCCount').innerText = levelCCount;
+      document.getElementById('levelADisplay').innerText = `${levelACount} people`;
+      document.getElementById('levelBDisplay').innerText = `${levelBCount} people`;
+      document.getElementById('levelCDisplay').innerText = `${levelCCount} people`;
+    });
+  });
+</script>
+  <script>
+document.getElementById("levelBack").addEventListener("click", () => {
+  window.location.href = "my project.html"; // redirect to your main page
+});
+</script>
+  <script>
+document.getElementById("qrCode").addEventListener("click", () => {
+  const img = document.querySelector("#qrCode img");
+  if (!img) return;
+
+  document.getElementById("qrBig").src = img.src;
+  document.getElementById("qrModal").style.display = "flex";
+});
+
+document.getElementById("qrModal").addEventListener("click", () => {
+  document.getElementById("qrModal").style.display = "none";
+});
+</script>
+</body>
+</html>

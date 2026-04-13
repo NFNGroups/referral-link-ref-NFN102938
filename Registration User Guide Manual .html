@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFN - Register & Login Guide</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f4f6f9;
+    color:#333;
+    position: relative;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+
+.header{
+    text-align: center;
+    padding: 60px 20px 40px 20px;
+    background: linear-gradient(135deg,#001F3F,#0072ff);
+    color: #fff;
+    border-radius: 15px;
+    position: relative;
+}
+
+.header-title{
+    text-align:center;
+}
+
+.back{
+    position: fixed; /* float above everything */
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color:#fff;
+    font-size:20px;
+    cursor:pointer;
+    border-radius:50%;
+    background: rgba(0,0,0,0.3);
+    z-index: 9999;
+}
+
+.section{
+    background:#fff;
+    margin-top:20px;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.section h2{
+    margin-top:0;
+    color:#001F3F;
+}
+
+ul{
+    padding-left:18px;
+}
+
+li{
+    margin-bottom:8px;
+}
+
+.note{
+    background:#fff3cd;
+    padding:12px;
+    border-radius:8px;
+    margin-top:10px;
+    font-size:14px;
+}
+
+.warning{
+    background:#ffe5e5;
+    padding:12px;
+    border-radius:8px;
+    margin-top:10px;
+    font-size:14px;
+}
+
+.footer{
+    text-align:center;
+    font-size:14px;
+    padding:20px;
+    color:#777;
+}
+</style>
+</head>
+<body>
+
+<div class="back" id="manualBack"><i class="fa-solid fa-chevron-left"></i></div>
+
+<div class="container">
+
+<div class="header">
+    <div class="header-title">
+        <h1>NFN Watch & Earn</h1>
+        <p>Registration & Login Manual</p>
+    </div>
+</div>
+
+<!-- REGISTRATION -->
+<div class="section">
+<h2>1️⃣ How To Register</h2>
+<ul>
+<li>Enter your active email address.</li>
+<li>Create a strong password (minimum 8 characters).</li>
+<li>Confirm your password correctly.</li>
+<li>Enter the verification code displayed on the screen.</li>
+<li>Click <strong>Register Now</strong>.</li>
+</ul>
+
+<div class="note">
+📩 After registration, a verification email will be sent to your email address.
+You MUST open your email and click the verification link before you can login.
+</div>
+
+<div class="warning">
+❗ If you do not see the verification email:
+<ul>
+<li>Check your <strong>Spam / Junk</strong> folder.</li>
+<li>If found in Spam, click <strong>"Report Not Spam"</strong>.</li>
+<li>Then open the email and click the verification link.</li>
+</ul>
+Login will not work until your email is verified.
+</div>
+</div>
+
+<!-- LOGIN -->
+<div class="section">
+<h2>2️⃣ How To Login</h2>
+<ul>
+<li>Enter your verified email address.</li>
+<li>Enter your correct password.</li>
+<li>Click <strong>Login</strong>.</li>
+</ul>
+
+<div class="note">
+✅ Make sure your email has been verified before trying to login.
+</div>
+
+<div class="warning">
+❌ If your email is not verified, you will see:
+“Please verify your email before logging in”
+
+❌ If password is incorrect, login will fail.
+</div>
+</div>
+
+<div class="footer">
+© 2021 NFN Watch & Earn. All Rights Reserved.
+</div>
+
+</div>
+
+<script>
+// Back button logic
+const backBtn = document.getElementById('manualBack');
+if(backBtn){
+    backBtn.addEventListener('click', () => {
+        window.history.back(); // go to previous page
+    });
+}
+</script>
+
+</body>
+</html>

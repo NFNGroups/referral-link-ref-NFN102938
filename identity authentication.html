@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Verification</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #fff;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(180deg, #08001a 0%, #1b0c2c 100%);
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+    position: relative;
+  }
+
+  .header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .back-arrow {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 26px;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Content box */
+  .content {
+    background: #fff;
+    padding: 10px 20px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    border-bottom: 1px solid #f1f1f1;
+  }
+
+  .label {
+    color: #444;
+    font-size: 17px;
+    font-weight: 500;
+  }
+
+  input[type="text"], select {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: #555;
+    text-align: right;
+    width: 60%;
+  }
+
+  input::placeholder {
+    color: #b0b0b0;
+  }
+
+  /* Gender Section */
+  .gender {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+  }
+
+  .gender label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    color: #666;
+  }
+
+  .gender input[type="radio"] {
+    display: none;
+  }
+
+  .gender .circle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gender input[type="radio"]:checked + .circle {
+    border: 5px solid #ffa200;
+  }
+
+  /* Divider */
+  .divider {
+    height: 10px;
+    background: linear-gradient(180deg, #ececec, #d9d9d9);
+    border: none;
+    margin: 0 -20px;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    display: block;
+    width: 90%;
+    margin: 25px auto;
+    background: linear-gradient(180deg, #08001a 0%, #1b0c2c 100%);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .submit-btn:hover {
+    opacity: 0.85;
+  }
+
+  /* Popup */
+  .popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff4b4b;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 15px;
+    opacity: 0;
+    animation: fadeInOut 2s ease-in-out;
+    z-index: 1000;
+  }
+
+  @keyframes fadeInOut {
+    0% {opacity: 0; transform: translate(-50%, -20px);}
+    20%,80% {opacity: 1; transform: translate(-50%, 0);}
+    100% {opacity: 0; transform: translate(-50%, -20px);}
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <a href="my project.html" class="back-arrow">&#8249;</a>
+    <h1>My identity Authentication</h1>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="row">
+      <span class="label">My Name</span>
+      <input type="text" id="name" placeholder="Please enter your name">
+    </div>
+
+    <div class="row">
+      <span class="label">My Gender</span>
+      <div class="gender">
+        <label>
+          <input type="radio" name="gender" value="Male">
+          <span class="circle"></span> Male
+        </label>
+        <label>
+          <input type="radio" name="gender" value="Female">
+          <span class="circle"></span> Female
+        </label>
+      </div>
+    </div>
+
+    <div class="row nationality">
+      <span class="label">My Nationality</span>
+      <select id="nationality">
+        <option value="">Select your nationality</option>
+        <option>Afghanistan</option>
+        <option>Albania</option>
+        <option>Algeria</option>
+        <option>Andorra</option>
+        <option>Angola</option>
+        <option>Argentina</option>
+        <option>Armenia</option>
+        <option>Australia</option>
+        <option>Austria</option>
+        <option>Azerbaijan</option>
+        <option>Bahamas</option>
+        <option>Bahrain</option>
+        <option>Bangladesh</option>
+        <option>Barbados</option>
+        <option>Belarus</option>
+        <option>Belgium</option>
+        <option>Belize</option>
+        <option>Benin</option>
+        <option>Bhutan</option>
+        <option>Bolivia</option>
+        <option>Bosnia and Herzegovina</option>
+        <option>Botswana</option>
+        <option>Brazil</option>
+        <option>Brunei</option>
+        <option>Bulgaria</option>
+        <option>Burkina Faso</option>
+        <option>Burundi</option>
+        <option>Cambodia</option>
+        <option>Cameroon</option>
+        <option>Canada</option>
+        <option>Cape Verde</option>
+        <option>Central African Republic</option>
+        <option>Chad</option>
+        <option>Chile</option>
+        <option>China</option>
+        <option>Colombia</option>
+        <option>Comoros</option>
+        <option>Congo</option>
+        <option>Costa Rica</option>
+        <option>Croatia</option>
+        <option>Cuba</option>
+        <option>Cyprus</option>
+        <option>Czech Republic</option>
+        <option>Denmark</option>
+        <option>Djibouti</option>
+        <option>Dominican Republic</option>
+        <option>Ecuador</option>
+        <option>Egypt</option>
+        <option>El Salvador</option>
+        <option>Equatorial Guinea</option>
+        <option>Eritrea</option>
+        <option>Estonia</option>
+        <option>Eswatini</option>
+        <option>Ethiopia</option>
+        <option>Fiji</option>
+        <option>Finland</option>
+        <option>France</option>
+        <option>Gabon</option>
+        <option>Gambia</option>
+        <option>Georgia</option>
+        <option>Germany</option>
+        <option>Ghana</option>
+        <option>Greece</option>
+        <option>Grenada</option>
+        <option>Guatemala</option>
+        <option>Guinea</option>
+        <option>Guinea-Bissau</option>
+        <option>Guyana</option>
+        <option>Haiti</option>
+        <option>Honduras</option>
+        <option>Hungary</option>
+        <option>Iceland</option>
+        <option>India</option>
+        <option>Indonesia</option>
+        <option>Iran</option>
+        <option>Iraq</option>
+        <option>Ireland</option>
+        <option>Israel</option>
+        <option>Italy</option>
+        <option>Jamaica</option>
+        <option>Japan</option>
+        <option>Jordan</option>
+        <option>Kazakhstan</option>
+        <option>Kenya</option>
+        <option>Kiribati</option>
+        <option>Kuwait</option>
+        <option>Kyrgyzstan</option>
+        <option>Laos</option>
+        <option>Latvia</option>
+        <option>Lebanon</option>
+        <option>Lesotho</option>
+        <option>Liberia</option>
+        <option>Libya</option>
+        <option>Liechtenstein</option>
+        <option>Lithuania</option>
+        <option>Luxembourg</option>
+        <option>Madagascar</option>
+        <option>Malawi</option>
+        <option>Malaysia</option>
+        <option>Maldives</option>
+        <option>Mali</option>
+        <option>Malta</option>
+        <option>Mauritania</option>
+        <option>Mauritius</option>
+        <option>Mexico</option>
+        <option>Moldova</option>
+        <option>Monaco</option>
+        <option>Mongolia</option>
+        <option>Montenegro</option>
+        <option>Morocco</option>
+        <option>Mozambique</option>
+        <option>Myanmar</option>
+        <option>Namibia</option>
+        <option>Nepal</option>
+        <option>Netherlands</option>
+        <option>New Zealand</option>
+        <option>Nicaragua</option>
+        <option>Niger</option>
+        <option>Nigeria</option>
+        <option>North Korea</option>
+        <option>North Macedonia</option>
+        <option>Norway</option>
+        <option>Oman</option>
+        <option>Pakistan</option>
+        <option>Palestine</option>
+        <option>Panama</option>
+        <option>Papua New Guinea</option>
+        <option>Paraguay</option>
+        <option>Peru</option>
+        <option>Philippines</option>
+        <option>Poland</option>
+        <option>Portugal</option>
+        <option>Qatar</option>
+        <option>Romania</option>
+        <option>Russia</option>
+        <option>Rwanda</option>
+        <option>Saint Kitts and Nevis</option>
+        <option>Saint Lucia</option>
+        <option>Saint Vincent and the Grenadines</option>
+        <option>Samoa</option>
+        <option>San Marino</option>
+        <option>Sao Tome and Principe</option>
+        <option>Saudi Arabia</option>
+        <option>Senegal</option>
+        <option>Serbia</option>
+        <option>Seychelles</option>
+        <option>Sierra Leone</option>
+        <option>Singapore</option>
+        <option>Slovakia</option>
+        <option>Slovenia</option>
+        <option>Solomon Islands</option>
+        <option>Somalia</option>
+        <option>South Africa</option>
+        <option>South Korea</option>
+        <option>Spain</option>
+        <option>Sri Lanka</option>
+        <option>Sudan</option>
+        <option>Suriname</option>
+        <option>Sweden</option>
+        <option>Switzerland</option>
+        <option>Syria</option>
+        <option>Taiwan</option>
+        <option>Tajikistan</option>
+        <option>Tanzania</option>
+        <option>Thailand</option>
+        <option>Togo</option>
+        <option>Tonga</option>
+        <option>Trinidad and Tobago</option>
+        <option>Tunisia</option>
+        <option>Turkey</option>
+        <option>Turkmenistan</option>
+        <option>Uganda</option>
+        <option>Ukraine</option>
+        <option>United Arab Emirates</option>
+        <option>United Kingdom</option>
+        <option>United States</option>
+        <option>Uruguay</option>
+        <option>Uzbekistan</option>
+        <option>Vanuatu</option>
+        <option>Vatican City</option>
+        <option>Venezuela</option>
+        <option>Vietnam</option>
+        <option>Yemen</option>
+        <option>Zambia</option>
+        <option>Zimbabwe</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <span class="label">My Address</span>
+      <input type="text" id="address" placeholder="Please enter your address">
+    </div>
+
+    <button class="submit-btn" onclick="submitForm()">Submit</button>
+  </div>
+
+   <!-- Error Popup -->
+  <div id="errorPopup" class="popup" style="display: none;">
+    <span>❌</span> Please fill in all fields!
+  </div>
+  
+  <script>
+    function showErrorPopup(message) {
+      const popup = document.getElementById('errorPopup');
+      popup.innerHTML = `<span>❌</span> ${message}`;
+      popup.style.display = "flex";
+      setTimeout(() => {
+        popup.style.display = "none";
+      }, 3000);
+    }
+
+    function submitForm() {
+      const name = document.getElementById("name");
+      const gender = document.querySelector('input[name="gender"]:checked');
+      const nationality = document.getElementById("nationality");
+      const address = document.getElementById("address");
+
+      if (!name.value.trim() || !gender || !nationality.value || !address.value.trim()) {
+        showErrorPopup('Please fill in all fields!');
+        return;
+      }
+
+      // Disable all inputs after submission
+      name.disabled = true;
+      nationality.disabled = true;
+      address.disabled = true;
+      document.querySelectorAll('input[name="gender"]').forEach(el => el.disabled = true);
+
+      document.querySelector(".submit-btn").disabled = true;
+      document.querySelector(".submit-btn").innerText = "Submitted";
+    }
+  </script>
+
+</body>
+</html>

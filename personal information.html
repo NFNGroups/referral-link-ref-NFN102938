@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal inform — Replica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{
+      --bg: #fff;
+      --muted: #9b9b9b;
+      --accent: #6b5fa6;
+      --locked-blue: #0b84ff;
+      --card-black: #000;
+    }
+    *{box-sizing:border-box; margin:0; padding:0}
+    html,body{
+      height:100%;
+      background:var(--bg);
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:#000;
+    }
+    .container{
+      max-width:420px;
+      margin:0 auto;
+      padding:24px 16px 32px 16px;
+    }
+
+    .header{
+      display:flex; align-items:center; gap:10px; margin-bottom:16px;
+    }
+    .back{
+      width:34px; height:34px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:20px; cursor:pointer;
+    }
+    .title{
+      font-weight:700; font-size:20px; color:#1f1f1f; flex:1; text-align:center; transform:translateX(-8px);
+    }
+
+    .list{display:flex; flex-direction:column; gap:18px}
+
+    .row{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:4px 0;
+    }
+
+    .row .label{
+      font-weight:800; font-size:20px; color:#0d0d0d; line-height:1;
+      max-width:180px;
+    }
+    .row .value{
+      font-weight:400; font-size:18px; color:var(--muted);
+      display:flex; align-items:center; gap:8px; min-width:96px; justify-content:flex-end;
+    }
+
+    .avatar-row{display:flex; align-items:center; justify-content:space-between}
+    .avatar{
+      width:52px; height:52px; border-radius:50%; background:linear-gradient(90deg,#0ea5e9,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px;
+    }
+
+    .muted-click{color:var(--muted); font-size:16px}
+    .chev{color:var(--muted); font-size:14px}
+
+    .empty{
+      margin-top:18px; font-weight:700; font-size:18px; color:var(--accent); display:flex; align-items:center; justify-content:space-between;
+    }
+
+    /* second page (withdraw pin) */
+    .page {
+      display: none;
+      height: 100%;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .withdraw-page {
+      padding: 24px 16px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .withdraw-page h3 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .field-label{ font-weight:700; font-size:18px; margin:12px 0 6px; }
+    .input-like{
+      width:100%;
+      padding: 12px 14px;
+      border-radius:8px;
+      border:1px solid #eee;
+      color:var(--muted);
+      font-size:16px;
+      background:#fafafa;
+    }
+
+    .submit-btn{
+      margin-top:18px;
+      width:100%;
+      padding:12px;
+      border-radius:8px;
+      border:none;
+      background: linear-gradient(90deg,#00d2ff,#3a7bd5);
+      color:white;
+      font-weight:700;
+      font-size:16px;
+      cursor:pointer;
+    }
+
+    /* PIN modal */
+    .pin-row { display:flex; gap:10px; justify-content:center; margin-top:10px; }
+    .pin-box {
+      width:44px; height:44px;
+      border-radius:6px;
+      border:1px solid #e0e0e0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px;
+      background:white;
+    }
+
+    .keypad {
+      margin-top:20px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      justify-items:center;
+    }
+    .keypad button {
+      width:100%;
+      height:64px;
+      border-radius:8px;
+      border:1px solid #e2e2e2;
+      background:#fff;
+      font-size:22px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    /* Bank card form page */
+    .bank-page {
+      padding: 24px 16px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .bank-card {
+      border-radius:12px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      border:1px solid #e6e6e6;
+      background:#f9f9f9;
+    }
+    .bank-card.locked {
+      background: linear-gradient(90deg,var(--locked-blue), #1c6fe0);
+      color: #fff;
+      border-color: rgba(255,255,255,0.06);
+    }
+    .bank-field { display:flex; flex-direction:column; gap:6px; }
+    .bank-field input, .bank-field select {
+      padding:10px 12px; border-radius:8px; border:1px solid #ddd; font-size:16px; background:#fff;
+    }
+    .bank-field input[readonly], .bank-field select[disabled] {
+      background:transparent; color:inherit; border:0; font-weight:700; cursor:default;
+    }
+    .bank-actions { display:flex; gap:10px; margin-top:10px; }
+
+    /* popup message */
+    .msg {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 22px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      opacity: 0;
+      animation: fadeInOut 3s ease forwards;
+      display:flex; align-items:center; gap:10px;
+      z-index: 9999;
+    }
+    .msg.success { background: #28a745; }
+    .msg.error { background: #dc3545; }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, -20px); }
+      10%, 90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+
+    /* small helpers */
+    .muted-small { font-size:13px; color:var(--muted); }
+  /* Fix long email display */
+#emailDisplay {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+  </style>
+</head>
+<body>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page1">
+    <div class="container" role="region" aria-label="Personal information">
+      <div class="header">
+        <div class="back"><i class="fa-solid fa-chevron-left"></i></div>
+        <div class="title">Personal inform...</div>
+        <div style="width:34px"></div>
+      </div>
+
+      <div class="list">
+
+        <div class="row avatar-row">
+          <div class="label">Head portrait</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="avatar">NFN</div>
+            <i class="fa-solid fa-chevron-right chev"></i>
+          </div>
+        </div>
+
+        <br><br> <div class="row">
+          <div class="label">Email address</div>
+          <div class="value" id="emailDisplay">—</div>
+        </div>
+
+        <br> <div class="row" id="inviteFriendsRow">
+  <div class="label">Invite<br/>friends</div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div class="muted-click">Click to Invite</div>
+    <i class="fa-solid fa-chevron-right chev"></i>
+  </div>
+</div>
+
+        <br> <div class="row">
+          <div class="label">Bank card</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="muted-click" id="bankAction">Click Settings</div>
+            <i class="fa-solid fa-chevron-right chev"></i>
+          </div>
+        </div>
+
+        <br> <div class="row" id="loginPasswordRow">
+  <div class="label">Login<br/>password</div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div class="muted-click">Click Settings</div>
+    <i class="fa-solid fa-chevron-right chev"></i>
+  </div>
+</div>
+
+        <br> <div class="row" id="withdrawRow">
+          <div class="label" id="withdrawLabel">Withdraw<br/>PIN</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="muted-click" id="withdrawAction">Click Settings</div>
+            <i class="fa-solid fa-chevron-right chev"></i>
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2: Withdraw PIN -->
+  <div class="page" id="page2">
+    <div class="withdraw-page">
+      <div class="header">
+        <div class="back" id="goBack"><i class="fa-solid fa-chevron-left"></i></div>
+        <div class="title" id="pinTitle">Please enter your 6-digit PIN</div>
+        <div style="width:34px"></div>
+      </div>
+
+      <div class="pin-row" id="pinRow">
+        <div class="pin-box"></div>
+        <div class="pin-box"></div>
+        <div class="pin-box"></div>
+        <div class="pin-box"></div>
+        <div class="pin-box"></div>
+        <div class="pin-box"></div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <button>1</button><button>2</button><button>3</button>
+        <button>4</button><button>5</button><button>6</button>
+        <button>7</button><button>8</button><button>9</button>
+        <button>0</button><button id="backspace">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3: Bank Card Form / View -->
+  <div class="page" id="page3">
+    <div class="bank-page">
+      <div class="header">
+        <div class="back" id="bankBack"><i class="fa-solid fa-chevron-left"></i></div>
+        <div class="title" id="bankTitle">Add bank details</div>
+        <div style="width:34px"></div>
+      </div>
+
+      <div id="bankCardContainer" class="bank-card" aria-live="polite">
+        <div class="bank-field">
+          <label class="field-label">Bank name</label>
+          <select id="bankSelect" size="5" style="height:140px; overflow:auto;">
+            <!-- ~20 banks -->
+            <option value="">-- Select bank --</option>
+          
+ <!-- Traditional Banks -->
+  <option>Access Bank</option>
+  <option>First Bank of Nigeria</option>
+  <option>GTBank</option>
+  <option>Zenith Bank</option>
+  <option>UBA</option>
+  <option>Fidelity Bank</option>
+  <option>Union Bank</option>
+  <option>Stanbic IBTC Bank</option>
+  <option>Ecobank</option>
+  <option>Polaris Bank</option>
+  <option>Keystone Bank</option>
+  <option>FCMB (First City Monument Bank)</option>
+  <option>Wema Bank</option>
+  <option>Sterling Bank</option>
+  <option>Jaiz Bank</option>
+  <option>Lotus Bank</option>
+  <option>Titan Trust Bank</option>
+  <option>Providus Bank</option>
+  <option>Optimus Bank</option>
+  <option>Parallex Bank</option>
+  <option>Premium Trust Bank</option>
+  <option>Signature Bank</option>
+  <option>Globus Bank</option>
+
+  <!-- Digital / Fintech Banks -->
+  <option>Opay</option>
+  <option>PalmPay</option>
+  <option>Moniepoint</option>
+  <option>Kuda Bank</option>
+  <option>FairMoney MFB</option>
+  <option>VFD Microfinance Bank</option>
+  <option>Sparkle Microfinance Bank</option>
+  <option>Rubies Bank</option>
+  <option>Eyowo</option>
+  <option>Carbon Microfinance Bank</option>
+  <option>Mintyn Bank</option>
+  <option>Revent Bank</option>
+  <option>SmartCash</option>
+  <option>KudaPay</option>
+</select>
+          </select>
+          <div class="muted-small">Scroll to choose (list shows multiple options)</div>
+        </div>
+
+        <div class="bank-field">
+          <label class="field-label">Account name</label>
+          <input id="accountName" 
+          placeholder="Please enter your Account Name" />
+        </div>
+
+       <div class="bank-field">
+  <label class="field-label">Account number</label>
+  <input
+    id="accountNumber"
+    type="text"
+    inputmode="numeric"
+    pattern="\d{10}"
+    maxlength="10"
+    placeholder="Please enter your 10-digit account number"
+    oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+  />
+  <div class="muted-small">Once you save, this cannot be changed.</div>
+</div>
+
+        <div class="bank-actions">
+          <button id="bankSaveBtn" class="submit-btn">Save Bank Card</button>
+          <button id="bankCancelBtn" class="submit-btn" style="background:#777;">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Page 4: Invite Friends -->
+<div class="page" id="page4">
+  <div class="withdraw-page">
+    <div class="header">
+      <div class="back" id="inviteBack"><i class="fa-solid fa-chevron-left"></i></div>
+      <div class="title">Invite Friends</div>
+      <div style="width:34px"></div>
+    </div>
+
+    <p style="text-align:center;">Share your referral link below:</p>
+
+    <div id="inviteLink" style="
+      background:#f5f5f5;
+      padding:14px;
+      border-radius:8px;
+      margin:20px 0;
+      text-align:center;
+      word-break:break-all;
+    ">
+      https://yourapp.com/register?ref=NFN123
+    </div>
+
+    <button id="copyLink" style="
+      display:block;
+      width:100%;
+      background:linear-gradient(90deg,#00d2ff,#3a7bd5);
+      color:white;
+      padding:12px;
+      border:none;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+    ">Copy Link</button>
+  </div>
+</div>
+
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+  
+  function verifyWithdrawalPin(inputPin) {
+    const savedPin = localStorage.getItem('withdrawPin'); // get the PIN from personal info
+    if (inputPin === savedPin) {
+        showMsg('PIN correct! Proceeding...', 'success');
+        // Here you can allow the withdrawal or go to next step
+        // For example: alert('Withdrawal allowed!');
+    } else {
+        showMsg('Incorrect PIN!', 'error'); // red popup if wrong
+        resetPin(); // clears the entered PIN
+    }
+}
+  
+  // Back button on main Personal Information page
+const topBack = document.querySelector('#page1 .back');
+if (topBack) {
+  topBack.addEventListener('click', () => {
+    window.location.href = 'my project.html';
+  });
+}
+  
+  /* --- Elements (all looked up after DOM ready) --- */
+  const withdrawRow = document.getElementById('withdrawRow');
+  const page1 = document.getElementById('page1');
+  const page2 = document.getElementById('page2');
+  const page3 = document.getElementById('page3');
+  const goBack = document.getElementById('goBack');
+  const bankBack = document.getElementById('bankBack');
+  const pinBoxes = document.querySelectorAll('.pin-box');
+  const keypad = document.getElementById('keypad');
+  const pinTitle = document.getElementById('pinTitle');
+  const withdrawAction = document.getElementById('withdrawAction');
+  const loginPasswordRow = document.getElementById('loginPasswordRow');
+  // also the inner muted-click inside the login row (in case user taps the text)
+  const loginPasswordInner = loginPasswordRow ? loginPasswordRow.querySelector('.muted-click') : null;
+
+  /* --- PIN state --- */
+  let step = 'new';
+  let newPin = '';
+  let confirmPin = '';
+  let currentPin = [];
+
+  // Load saved PIN from localStorage
+  let savedPin = localStorage.getItem('withdrawPin') || '';
+  let hasPin = !!savedPin;
+  if (hasPin && withdrawAction) withdrawAction.textContent = 'Change PIN';
+
+  /* --- small safe helper to show messages --- */
+  function showMsg(text, type = 'error') {
+    // keep same behavior as your original showMsg
+    const msg = document.createElement('div');
+    msg.className = `msg ${type}`;
+    msg.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${text}`;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+  }
+
+  /* --- PIN UI helpers --- */
+  function resetPin() {
+    currentPin = [];
+    pinBoxes.forEach(b => (b.textContent = ''));
+  }
+
+  function renderPin() {
+    pinBoxes.forEach((b, i) => (b.textContent = currentPin[i] ? '•' : ''));
+  }
+
+  /* --- Keypad handler (guarded) --- */
+  if (keypad) {
+    keypad.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') return;
+      const val = e.target.textContent.trim();
+      if (val === '⌫') {
+        currentPin.pop();
+      } else if (/^[0-9]$/.test(val) && currentPin.length < 6) {
+        currentPin.push(val);
+      }
+      renderPin();
+
+      if (currentPin.length === 6) {
+        const pin = currentPin.join('');
+        if (step === 'verifyOld') {
+          if (pin === savedPin) {
+            step = 'new';
+            if (pinTitle) pinTitle.textContent = 'Please enter your new 6-digit PIN';
+            resetPin();
+          } else {
+            showMsg('Incorrect old PIN!', 'error');
+            resetPin();
+          }
+        } else if (step === 'new') {
+          newPin = pin;
+          step = 'confirm';
+          if (pinTitle) pinTitle.textContent = 'Please confirm your 6-digit PIN';
+          resetPin();
+        } else if (step === 'confirm') {
+          confirmPin = pin;
+          if (confirmPin === newPin) {
+            savedPin = newPin;
+            hasPin = true;
+            localStorage.setItem('withdrawPin', savedPin); // persist
+            if (withdrawAction) withdrawAction.textContent = 'Change PIN';
+            showMsg('PIN set successfully!', 'success');
+            page2.classList.remove('active');
+            page1.classList.add('active');
+          } else {
+            showMsg('PINs do not match!', 'error');
+            step = 'new';
+            if (pinTitle) pinTitle.textContent = 'Please enter your 6-digit PIN';
+            resetPin();
+          }
+        }
+      }
+    });
+  }
+
+  /* --- Withdraw Row click (guarded) --- */
+  if (withdrawRow) {
+    withdrawRow.addEventListener('click', () => {
+      page1.classList.remove('active');
+      page2.classList.add('active');
+      resetPin();
+      if (hasPin) {
+        step = 'verifyOld';
+        if (pinTitle) pinTitle.textContent = 'Please enter your old 6-digit PIN';
+      } else {
+        step = 'new';
+        if (pinTitle) pinTitle.textContent = 'Please enter your 6-digit PIN';
+      }
+    });
+  }
+
+  /* --- goBack for PIN page --- */
+  if (goBack) {
+    goBack.addEventListener('click', () => {
+      page2.classList.remove('active');
+      page1.classList.add('active');
+      resetPin();
+    });
+  }
+
+  /* --- Bank card logic (guarded heavily) --- */
+  const bankAction = document.getElementById('bankAction');
+  const bankSelect = document.getElementById('bankSelect');
+  const accountNameInput = document.getElementById('accountName');
+  const accountNumberInput = document.getElementById('accountNumber');
+  const bankSaveBtn = document.getElementById('bankSaveBtn');
+  const bankCancelBtn = document.getElementById('bankCancelBtn');
+  const bankCardContainer = document.getElementById('bankCardContainer');
+
+  const BANK_KEY = 'bankInfo';
+
+  function maskAccountNumber(num) {
+    if (!num) return '';
+    const s = String(num).replace(/\s+/g, '');
+    if (s.length <= 4) return s;
+    const last = s.slice(-4);
+    return '**** **** **** ' + last;
+  }
+
+  function loadBankInfo() {
+    const raw = localStorage.getItem(BANK_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+
+  function renderBankSummary() {
+    const info = loadBankInfo();
+    if (!bankAction) return;
+    if (info) {
+      bankAction.textContent = `${maskAccountNumber(info.accountNumber)} • ${info.bankName}`;
+      bankAction.style.color = '#0b84ff';
+    } else {
+      bankAction.textContent = 'Click Settings';
+      bankAction.style.color = '';
+    }
+  }
+
+  renderBankSummary();
+
+  // open bank page function (guarded)
+  function openBankPage() {
+    if (!page1 || !page3) return;
+    page1.classList.remove('active');
+    page3.classList.add('active');
+    const info = loadBankInfo();
+    if (info && bankSelect && accountNameInput && accountNumberInput && bankSaveBtn && bankCardContainer) {
+      bankSelect.value = info.bankName || '';
+      accountNameInput.value = info.accountName || '';
+      accountNumberInput.value = info.accountNumber || '';
+      bankSelect.disabled = true;
+      accountNameInput.setAttribute('readonly', 'readonly');
+      accountNumberInput.setAttribute('readonly', 'readonly');
+      bankSaveBtn.disabled = true;
+      bankSaveBtn.style.opacity = '0.6';
+      bankCardContainer.classList.add('locked');
+      const title = document.getElementById('bankTitle');
+      if (title) title.textContent = 'Bank details (locked)';
+    } else if (bankSelect && accountNameInput && accountNumberInput && bankSaveBtn && bankCardContainer) {
+      bankSelect.disabled = false;
+      accountNameInput.removeAttribute('readonly');
+      accountNumberInput.removeAttribute('readonly');
+      bankSaveBtn.disabled = false;
+      bankSaveBtn.style.opacity = '1';
+      bankCardContainer.classList.remove('locked');
+      const title = document.getElementById('bankTitle');
+      if (title) title.textContent = 'Add bank details';
+      bankSelect.value = '';
+      accountNameInput.value = '';
+      accountNumberInput.value = '';
+    }
+  }
+
+  // attach bank click listeners safely
+  try {
+    if (bankAction) bankAction.addEventListener('click', openBankPage);
+    // fallback to clickable row around bankAction
+    const bankRowSafe = bankAction ? bankAction.closest('.row') : null;
+    if (bankRowSafe) bankRowSafe.addEventListener('click', openBankPage);
+  } catch (e) {
+    // ignore silently but show message in console
+    console.warn('bank action attach failed', e);
+  }
+
+  // Cancel/save handlers (guarded)
+  if (bankCancelBtn) {
+    bankCancelBtn.addEventListener('click', () => {
+      if (page3 && page1) { page3.classList.remove('active'); page1.classList.add('active'); }
+    });
+  }
+
+  if (bankSaveBtn) {
+    bankSaveBtn.addEventListener('click', () => {
+      const bankName = bankSelect && bankSelect.value && bankSelect.value.trim();
+      const accName = accountNameInput && accountNameInput.value && accountNameInput.value.trim();
+      const accNum = accountNumberInput && accountNumberInput.value && accountNumberInput.value.trim();
+
+      if (!bankName) { showMsg('Please select a bank', 'error'); return; }
+      if (!accName) { showMsg('Please enter account name', 'error'); return; }
+      if (!/^\d{10}$/.test(accNum)) { showMsg('Account number must be exactly 10 digits', 'error'); return; }
+
+      if (localStorage.getItem(BANK_KEY)) {
+        showMsg('Bank info is locked and cannot be changed', 'error');
+        if (bankCardContainer) bankCardContainer.classList.add('locked');
+        return;
+      }
+
+      const payload = { bankName, accountName: accName, accountNumber: accNum, savedAt: new Date().toISOString() };
+      localStorage.setItem(BANK_KEY, JSON.stringify(payload));
+      showMsg('Bank card saved and locked', 'success');
+
+      if (bankSelect) bankSelect.disabled = true;
+      if (accountNameInput) accountNameInput.setAttribute('readonly', 'readonly');
+      if (accountNumberInput) accountNumberInput.setAttribute('readonly', 'readonly');
+      if (bankSaveBtn) bankSaveBtn.disabled = true;
+      if (bankCardContainer) bankCardContainer.classList.add('locked');
+      const title = document.getElementById('bankTitle');
+      if (title) title.textContent = 'Bank details (locked)';
+
+      renderBankSummary();
+
+      setTimeout(() => {
+        if (page3 && page71) { page3.classList.remove('active'); page1.classList.add('active'); }
+      }, 900);
+    });
+  }
+
+  // bankBack handler
+  if (bankBack) bankBack.addEventListener('click', () => { if (page3 && page1) { page3.classList.remove('active'); page1.classList.add('active'); } });
+
+  // render summary at load
+  if (bankCardContainer && !localStorage.getItem(BANK_KEY)) bankCardContainer.classList.remove('locked');
+
+  /* --- THE LOGIN PASSWORD CLICK (safe attach) --- */
+  // Attach to the row and also to the inner text so clicks register.
+  function attachLoginPasswordHandler() {
+    const handler = () => showMsg('It can only be set or changed in the Register page', 'error');
+    try {
+      if (loginPasswordRow) loginPasswordRow.addEventListener('click', handler);
+      if (loginPasswordInner) loginPasswordInner.addEventListener('click', handler);
+    } catch (err) {
+      console.warn('Failed to attach login password handler', err);
+    }
+  }
+  attachLoginPasswordHandler();
+
+  // small UX: give mute-click cursor so users know it's tappable
+  document.querySelectorAll('.muted-click').forEach(el => el.style.cursor = 'pointer');
+
+  // === INVITE FRIENDS FEATURE ===
+const inviteFriendsRow = document.getElementById('inviteFriendsRow');
+const inviteBack = document.getElementById('inviteBack');
+const inviteLink = document.getElementById('inviteLink');
+const copyLink = document.getElementById('copyLink');
+const page4 = document.getElementById('page4');
+
+// Open Invite Friends page
+if (inviteFriendsRow) {
+  inviteFriendsRow.addEventListener('click', () => {
+    page1.classList.remove('active');
+    page4.classList.add('active');
+  });
+}
+
+// Go back to main page
+if (inviteBack) {
+  inviteBack.addEventListener('click', () => {
+    page4.classList.remove('active');
+    page1.classList.add('active');
+  });
+}
+
+// Copy referral link (works everywhere)
+if (copyLink) {
+  copyLink.addEventListener('click', () => {
+    const text = inviteLink.textContent.trim();
+
+    // Try modern API
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => showMsg('Link copied to clipboard!', 'success'))
+        .catch(() => fallbackCopy());
+    } else {
+      fallbackCopy();
+    }
+
+    // Backup copy method (always works)
+    function fallbackCopy() {
+      const tempInput = document.createElement('textarea');
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showMsg('Link copied!', 'success');
+    }
+  });
+}
+  
+  // === REFERRAL CODE GENERATION ===
+let referralCode = localStorage.getItem('referralCode');
+
+if (!referralCode) {
+  referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  localStorage.setItem('referralCode', referralCode);
+}
+
+// Build referral link
+const referralLink = `${window.location.origin}/index.html?ref=${referralCode}`;
+
+if (inviteLink) {
+  inviteLink.textContent = referralLink;
+}
+  
+  // === SHOW SAVED EMAIL FROM LOCALSTORAGE ===
+  const emailDisplay = document.getElementById('emailDisplay');
+  const savedEmail = localStorage.getItem('registeredEmail');
+  if (emailDisplay) {
+    if (savedEmail && savedEmail.trim() !== '') {
+      emailDisplay.textContent = savedEmail;
+    } else {
+      emailDisplay.textContent = 'Not set';
+    }
+  }
+  
+}); // end DOMContentLoaded
+ // ✅ Save or change withdrawal PIN (final version)
+function saveWithdrawalPin(pin) {
+  if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+    alert("PIN must be exactly 6 digits");
+    return false;
+  }
+  localStorage.setItem("withdrawPin", pin);
+  alert("✅ Withdrawal PIN saved successfully!");
+  return true;
+}
+</script>
+</body>
+</html>

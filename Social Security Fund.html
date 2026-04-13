@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Security Funds Tracker</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  h1 { text-align: center; color: #001F3F; }
+  .levels { list-style: none; padding: 0; margin: 20px 0; }
+  .levels li { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-radius: 12px; margin-bottom: 10px; background: #f0f0f0; font-weight: bold; font-size: 16px; }
+  .levels li.current { background: #28a745; color: #fff; }
+  .levels li button { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 14px; }
+  .levels li button.pay { background: #0072ff; color: #fff; }
+  .levels li button.paid { background: #ccc; color: #666; cursor: default; }
+  .info { margin-top: 20px; font-size: 14px; color: #555; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Social Security Funds</h1>
+  <p class="info">Payments are due every 2 months. Your current level is highlighted in green.</p>
+
+  <ul class="levels" id="levelsList">
+    <li data-level="V1" data-amount="1000">V1 - ₦1,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V2" data-amount="2000">V2 - ₦2,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V3" data-amount="3000">V3 - ₦3,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V4" data-amount="5000">V4 - ₦5,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V5" data-amount="10000">V5 - ₦10,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V6" data-amount="30000">V6 - ₦30,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V7" data-amount="50000">V7 - ₦50,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V8" data-amount="100000">V8 - ₦100,000 <button class="pay-btn">Pay</button></li>
+    <li data-level="V9" data-amount="200000">V9 - ₦200,000 <button class="pay-btn">Pay</button></li>
+  </ul>
+</div>
+
+<script>
+  const PAY_KEY = "ssfPayment";  // Stores last payment timestamp
+
+  // Get current user level from localStorage (from mobile app)
+  let userLevel = localStorage.getItem("ssfLevel") || "V1";
+
+  // Check if payment is due (60 days = 2 months)
+  function isPaymentDue(lastPaid) {
+    if (!lastPaid) return true;
+    const lastDate = new Date(parseInt(lastPaid));
+    const now = new Date();
+    const diffDays = (now - lastDate) / (1000 * 60 * 60 * 24);
+    return diffDays >= 60;
+  }
+
+  function renderLevels() {
+    const listItems = document.querySelectorAll("#levelsList li");
+    const lastPaid = localStorage.getItem(PAY_KEY);
+
+    listItems.forEach(li => {
+      const level = li.dataset.level;
+      const btn = li.querySelector("button");
+
+      // Highlight current level
+      if(level === userLevel) {
+        li.classList.add("current");
+      } else {
+        li.classList.remove("current");
+      }
+
+      // Payment button logic
+      if(level === userLevel) {
+        if(isPaymentDue(lastPaid)) {
+          btn.textContent = "Pay";
+          btn.disabled = false;
+          btn.classList.remove("paid");
+          btn.classList.add("pay");
+        } else {
+          btn.textContent = "Paid";
+          btn.disabled = true;
+          btn.classList.remove("pay");
+          btn.classList.add("paid");
+        }
+
+        btn.onclick = () => {
+          const now = new Date().getTime();
+          localStorage.setItem(PAY_KEY, now);
+          renderLevels(); // Refresh display
+          alert(`Payment of ₦${li.dataset.amount} successful!`);
+        };
+      } else {
+        btn.textContent = "";
+        btn.disabled = true;
+      }
+    });
+  }
+
+  renderLevels();
+
+  // Optional: watch for level changes if another page updates it
+  window.addEventListener('storage', (e) => {
+    if(e.key === 'ssfLevel') {
+      userLevel = e.newValue;
+      renderLevels();
+    }
+  });
+</script>
+
+</body>
+</html>

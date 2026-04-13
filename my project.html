@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mobile App UI</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+* { box-sizing: border-box; }
+  body {margin:0; font-family:Arial,sans-serif; background:#fff;}
+  .screen {max-width:420px; margin:0 auto; height:100vh; display:flex; flex-direction:column; border:1px solid #ccc;}
+  .content {flex:1; overflow-y:auto; background:#f9f9f9; padding-bottom:60px;}
+  .grid {display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:10px;}
+  .grid-item {text-align:center; font-size:12px; background:#fff; border-radius:12px; padding:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center;}
+  .grid-item img {width:26px; height:26px; margin-bottom:3px;}
+  .profile-header {background:url('https://i.ibb.co/pXcc70f/stars-bg.jpg') no-repeat center/cover; color:white; padding:20px; text-align:center;}
+  .profile-header .avatar {width:50px; height:50px; border-radius:50%; background:gold; display:inline-block; margin-right:10px; vertical-align:middle;}
+  .profile-header span {font-size:18px; font-weight:bold; vertical-align:middle;}
+  .level-badge {display:inline-block; background:orange; padding:2px 8px; border-radius:12px; font-size:12px; margin-left:8px; color:#fff;}
+  .stats-card {background:#fff; margin:15px; padding:15px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  .stat-row {display:flex; justify-content:space-between; padding:6px 0; font-size:14px; border-bottom:1px solid #eee;}
+  .buttons {display:flex; justify-content:space-around; margin:15px;}
+  .buttons button {flex:1; margin:0 8px; padding:10px; font-size:14px; border:none; border-radius:20px; cursor:pointer;}
+  .recharge {background:linear-gradient(90deg,#FFD54F,#FFB300); color:#fff;}
+  .withdrawal {background:linear-gradient(90deg,#FFA726,#FB8C00); color:#fff;}
+  .list {background:#fff; margin:15px; border-radius:12px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  .list-item {display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee; font-size:14px;}
+  .list-item:last-child {border-bottom:none;}
+  .list-item.small {font-size:15px; padding:15px;}
+  .list-item.small img {width:20px; height:20px; margin-right:16px;}
+  .list-item.small span {display:flex; align-items:center; gap:6px;}
+  .navbar {display:flex; justify-content:space-around; border-top:1px solid #ddd; background:#fff; padding:6px 0; position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:420px;}
+  .nav-item {flex:1; text-align:center; font-size:12px; color:#999; cursor:pointer;}
+  .nav-item i {display:block; font-size:18px; margin-bottom:4px;}
+  .nav-item.active {color:#FB8C00; font-weight:bold;}
+  .page {display:none; padding:15px; font-size:14px;}
+  .page.active {display:block;}
+   .amounts {display:flex; flex-wrap:wrap; gap:6px; margin:12px 0;}
+  .amount-btn {flex:1 1 30%; padding:6px; text-align:center; border:1px solid #ccc; border-radius:8px; cursor:pointer; font-size:11px;}
+  .amount-btn.active {background:#00BCD4; color:#fff; border:none;}
+    .task-header {background:url('https://i.ibb.co/pXcc70f/stars-bg.jpg') no-repeat center/cover; padding:20px; border-radius:12px; color:white; text-align:center; margin-bottom:15px;}
+  .task-list {display:flex; flex-direction:column; gap:12px;}
+  .task-card {background:#ff; border-radius:12px; display:flex; align-items:center; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  .task-card img {width:80px; height:50px; border-radius:8px; margin-right:10px; object-fit:cover;}
+  .task-info {flex:1;}
+  .task-info .level {background:orange; color:#fff; font-size:12px; padding:2px 6px; border-radius:8px; display:inline-block; margin-bottom:4px;}
+  .task-info .reward {color:#FF9800; font-weight:bold;}
+  .play-btn {padding:6px 12px; background:#FB8C00; color:#fff; border:none; border-radius:8px; cursor:pointer;}
+  .play-btn:disabled {background:#ccc; cursor:not-allowed;}
+
+  /* Loader */
+  #loader {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    align-items:center;
+    justify-content:center;
+    z-index: 9999;
+    background: rgba(255,255,255,0.95);
+    flex-direction: column;
+    gap:8px;
+  }
+  .spinner {
+    width:48px; height:48px;
+    border-radius:50%;
+    border:6px solid #f3f3f3;
+    border-top-color: #FB8C00;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const savedUser = JSON.parse(localStorage.getItem("user")) || { email: "Guest", level: "Lv1" };
+  document.getElementById("userEmail").innerText = savedUser.email;
+  document.getElementById("userLevel").innerText = savedUser.level;
+
+  let stats = JSON.parse(localStorage.getItem("stats")) || {
+    todayIncome:0, monthIncome:0, revenue:0, withdrawals:0, balance:0, profit:0,
+    tasksRemaining:10, tasksCompleted:0,
+    lastReset: new Date().toDateString(),
+    lastMonth: new Date().getMonth()
+  };
+  updateUI();
+});
+</script>
+</head>
+<body>
+<div class="screen">
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <div>Data Loading… No Network</div>
+  </div>
+
+  <div class="content">
+    <!-- Home Tab -->
+    <div id="home" class="tab active">
+      <div class="grid">
+        <div class="grid-item" onclick="openPage('companyIntro')">
+          <img src="https://img.icons8.com/ios-filled/50/000000/crown.png"/><br>Company Introduction
+        </div>
+        <div class="grid-item" onclick="openPage('companyActivities')">
+  <img src="https://img.icons8.com/ios-filled/50/000000/conference.png"/><br>Company Activities
+</div> 
+        <div class="grid-item"><img src="https://img.icons8.com/ios-filled/50/000000/news.png"/><br>News Events</div>
+        <div class="grid-item" onclick="openPage('memberBenefits')">
+  <img src="https://img.icons8.com/ios-filled/50/000000/vip.png"/><br>Member Benefits
+</div>
+               <div class="grid-item"><img src="https://img.icons8.com/ios-filled/50/000000/briefcase.png"/><br>Position Application</div>
+        <div class="grid-item"><img src="https://img.icons8.com/ios-filled/50/000000/conference-call.png"/><br>Team Expansion</div>
+        <div class="grid-item"><img src="https://img.icons8.com/ios-filled/50/000000/roulette.png"/><br>Lucky Draw</div>
+        <div class="grid-item"><img src="https://img.icons8.com/ios-filled/50/000000/money-bag.png"/><br>Financial Fund</div>
+        <div class="grid-item"><img src="https://img.icons8.com/ios-filled/50/000000/charity.png"/><br>Social Security Fund</div>
+      </div>
+
+  <!-- 🏎️ Advertising Display Area (Adsterra Integration) -->
+<div class="advertising-section" style="margin:15px 10px;">
+  <div style="background:#fff; border-radius:12px; box-||:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; position:relative;">
+    <div style="padding:10px; font-weight:bold; color:#333; border-bottom:1px solid #eee;">
+      Advertising Display Area
+    </div>
+
+    <div id="adContainer" style="width:100%; height:280px; position:relative; overflow:hidden;">
+      <!-- Adsterra Script -->
+      <script async="async" data-cfasync="false" src="https://pl28438786.effectivegatecpm.com/15737df8fc05caa4290864419db8ce7b/invoke.js"></script>
+<div id="container-15737df8fc05caa4290864419db8ce7b"></div>
+            
+      <!-- Fallback Image (shows if ad fails) -->
+      <img id="adFallback" 
+           src="https://i.ibb.co/xjLTF3b/porsche-ad-sample.jpg" 
+           alt="Sponsored Ad" 
+           style="width:100%; height:280px; object-fit:cover; position:absolute; top:0; left:0; display:none;">
+    </div>
+  </div>
+</div>
+
+    <!-- Small Advertising Banner -->
+<div class="advertising-small" style="margin:15px 10px;">
+  <div style="background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; position:relative;">
+    <div style="padding:6px 10px; font-weight:bold; color:#333; border-bottom:1px solid #eee; font-size:13px;">
+      Sponsored
+    </div>
+
+    <div id="smallAdContainer" style="width:468px; max-width:100%; height:60px; margin:auto;">
+      <script>
+        var  atOptions = {
+    'key' : '1ba79dfcad52252b19e62dee5803a9ac',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/1ba79dfcad52252b19e62dee5803a9ac/invoke.js"></script>
+    </div>
+  </div>
+</div>
+      
+<script>
+  // Hide fallback if ad loads within 3 seconds
+  window.addEventListener('load', function() {
+    const fallback = document.getElementById('adFallback');
+    const adContainer = document.getElementById('adContainer');
+
+    setTimeout(() => {
+      // Check if Adsterra injected content inside its container
+      const adFilled = adContainer.querySelector('#container-d02b0608be7605a76f0c23d38f9a75f7').children.length > 0;
+      if (!adFilled) {
+        fallback.style.display = 'block';
+      }
+    }, 3000);
+  });
+</script>
+      
+   
+</div>
+
+    
+    <!-- My Tab -->
+    <div id="my" class="tab" style="display:none;">
+    <div class="profile-header">
+  <div class="avatar"></div>
+  <span id="userEmail">Loading...</span>
+  <span class="level-badge" id="userLevel">Lv1</span>
+</div>
+      <div class="stats-card">
+        <div class="stat-row"><span>Today's mission income</span><span id="todayIncome">0</span></div>
+        <div class="stat-row"><span>This month's mission income</span><span id="monthIncome">0</span></div>
+        <div class="stat-row"><span>Total revenue</span><span id="revenue">0</span></div>
+        <div class="stat-row"><span>Wallet Balance</span><span id="balance">0</span></div>
+        <div class="stat-row"><span>Profit</span><span id="profit">0</span></div>
+      </div>
+      <div class="buttons">
+        <button class="recharge" onclick="window.location.href='recharge.html'">Recharge</button>
+         <button class="withdrawal" onclick="window.location.href='withdrawal.html'">Withdrawal</button>
+           </div>
+      <div class="list">
+        <div class="list-item small" onclick="openPage('companyIntro')"><span><img src="https://img.icons8.com/ios-filled/50/000000/company.png"/>Company Introduction</span>➔</div>
+        <div class="list-item small" onclick="window.location.href='personal information.html'">
+  <span><img src="https://img.icons8.com/ios-filled/50/000000/user.png"/>Personal Information</span>➔
+</div>
+        
+      <div class="list-item small" onclick="window.location.href='identity authentication.html'">
+  <span><img src="https://img.icons8.com/ios-filled/50/000000/identification-documents.png"/>Identity Authentication</span>➔
+</div>
+        
+        <div class="list-item small" onclick="window.location.href='NFN Users Manual .html'">
+  <span>
+    <img src="https://img.icons8.com/ios-filled/50/000000/book.png"/>
+    NFN Users Manual Guide
+  </span>
+  ➔
+</div>
+        
+<div class="list-item small" onclick="goToDownloadApp()">
+  <span>
+    <img src="https://img.icons8.com/ios-filled/50/000000/download.png"/>
+    Download App
+  </span>
+  ➔
+</div>
+<script>
+function goToDownloadApp() {
+  window.location.href = "Download App.html"; // ✅ removed space in filename
+}
+</script>
+        <div class="list-item small" onclick="window.location.href='identity verification.html'">
+  <span>
+    <img src="https://img.icons8.com/ios-filled/50/000000/lock.png"/>
+    Identity Verification
+  </span>
+  ➔
+</div>
+               <div class="list-item small" onclick="logout()">
+          <span><img src="https://img.icons8.com/ios-filled/50/000000/logout-rounded-left.png"/>Log Out</span>➔
+    </div>
+</div>
+</div>
+   
+     <!-- Level Tab -->
+    <div id="level" class="tab" style="display:none;">
+
+<div class="level-back-header">
+  <i class="fa-solid fa-chevron-left" id="levelBack"></i>
+</div>
+      
+<!-- ORIGINAL TABLE CODE -->
+<div class="header">
+  <h1>NFN</h1>
+  <p>Employee Level Income Details (NGN)</p>
+</div>
+  
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Employee Level</th>
+        <th>Margin Rate</th>
+        <th>Daily Income</th>
+        <th>Total Daily Tasks</th>
+        <th>Referral Income</th>
+        <th>Monthly Income</th>
+        <th>Annual Income</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="current-level">
+        <td class="level">Temporary</td>
+        <td>—</td>
+        <td>600</td>
+        <td>5</td>
+        <td>120</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="level">V1</td>
+        <td>30,000</td>
+        <td>200</td>
+        <td>30</td>
+        <td>1,000</td>
+        <td>30,000</td>
+        <td>360,00</td>
+      </tr>
+      <tr>
+        <td class="level">V2</td>
+        <td>60,000</td>
+        <td>400</td>
+        <td>60</td>
+        <td>2,000</td>
+        <td>60,000</td>
+        <td>720,000</td>
+      </tr>
+      <tr>
+        <td class="level">V3</td>
+        <td>160,000</td>
+        <td>800</td>
+        <td>90</td>
+        <td>5,000</td>
+        <td>120,000</td>
+        <td>1,440,000</td>
+      </tr>
+      <tr>
+        <td class="level">V4</td>
+        <td>450,000</td>
+        <td>16,000</td>
+        <td>180</td>
+        <td>10,000</td>
+        <td>480,000</td>
+        <td>5,900,000</td>
+      </tr>
+      <tr>
+        <td class="level">V5</td>
+        <td>1,162,000</td>
+        <td>32,000</td>
+        <td>360</td>
+        <td>20,000</td>
+        <td>1,248,000</td>
+        <td>15,184,000</td>
+      </tr>
+      <tr>
+        <td class="level">V6</td>
+        <td>2,925,000</td>
+        <td>64,000</td>
+        <td>520</td>
+        <td>30,000</td>
+        <td>3,366,000</td>
+        <td>40,953,000</td>
+      </tr>
+      <tr>
+        <td class="level">V7</td>
+        <td>5,720,000</td>
+        <td>128,000</td>
+        <td>150</td>
+        <td>50,000</td>
+        <td>6,660,000</td>
+        <td>81,030,000</td>
+      </tr>
+      <tr>
+        <td class="level">V8</td>
+        <td>11,520,000</td>
+        <td>256,000</td>
+        <td>190</td>
+        <td>100,000</td>
+        <td>14,364,000</td>
+        <td>174,762,000</td>
+      </tr>
+      <tr>
+        <td class="level">V9</td>
+        <td>20,700,000</td>
+        <td>862,500</td>
+        <td>250</td>
+        <td>500,000</td>
+        <td>25,875,000</td>
+        <td>314,812,500</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="footer-space"></div>
+
+  <!-- Payment Confirmation Popup -->
+<div id="paymentPopup" class="payment-popup">
+  <div class="popup-content">
+    <p id="popupMessage"></p>
+    <div class="popup-buttons">
+      <button id="yesBtn" class="yes-btn">Yes</button>
+      <button id="noBtn" class="no-btn">No</button>
+    </div>
+  </div>
+</div>
+  
+  <!-- Add this red popup somewhere in your body -->
+<div id="insufficientPopup" class="payment-popup">
+  <div class="popup-content" style="background:#f87171;">
+    <p id="insufficientMessage" style="color:#fff; font-weight:bold;"></p>
+    <div class="popup-buttons">
+      <button id="insufficientOk" class="no-btn">OK</button>
+    </div>
+  </div>
+</div>
+  
+  <!-- Green success popup -->
+<div id="successPopup" class="payment-popup">
+  <div class="popup-content" style="background:#10b981;">
+    <p id="successMessage" style="color:#fff; font-weight:bold;"></p>
+    <div class="popup-buttons">
+      <button id="successOk" class="yes-btn">OK</button>
+    </div>
+  </div>
+</div>
+  
+<!-- SWIPE LEVEL CONTAINER -->
+<div class="swipe-container" id="swipeContainer">
+  <div class="swipe-level" id="swipeLevel">
+    <!-- Level info will be injected here -->
+  </div>
+</div>
+<div class="swipe-hint">Swipe right to see next level, swipe left to go back</div>
+
+    
+     
+<style>
+  .custom-select {
+    position: relative;
+    width: 100%;
+  }
+  .select-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #fff;
+  }
+  .options-container {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 99;
+    display: none;
+  }
+  .options-container.active {
+    display: block;
+  }
+  .search-box {
+    width: 95%;
+    margin: 8px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  .option {
+    padding: 10px;
+    cursor: pointer;
+  }
+  .option:hover {
+    background: #f2f2f2;
+  }
+  .status {
+    display: inline-block;
+    background: rgba(0,0,0,0.4);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 15px;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  .status.show { opacity: 1; }
+  .disabled input, .disabled button, .disabled .select-box {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+    .back {
+  font-size: 22px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.back:active {
+  transform: translateX(-2px);
+  opacity: 0.7;
+}
+    /* Logout popup styles */
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+.popup-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  width: 280px;
+}
+.popup-box p {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+.popup-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+.popup-buttons .yes {
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+.popup-buttons .no {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+   
+/* Header */
+.header{
+  background:linear-gradient(135deg,#3b82f6,#22c1c3);
+  padding:30px 15px 40px;
+  text-align:center;
+  color:#fff;
+}
+
+.header h1{
+  font-size:36px;
+  font-weight:800;
+  letter-spacing:2px;
+}
+
+.header p{
+  margin-top:10px;
+  font-size:14px;
+  opacity:0.9;
+}
+
+/* CURRENT LEVEL DISPLAY */
+.current-level-display {
+  text-align:center;
+  margin: 20px 0;
+  font-size:22px;
+  font-weight:700;
+  color:#1e3a8a;
+  background: linear-gradient(135deg,#93c5fd,#60a5fa);
+  padding:15px 0;
+  border-radius:15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Card */
+.card{
+  background:#fff;
+  margin:-25px 10px 20px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.15);
+  overflow:hidden;
+}
+
+/* Table */
+.table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+.table thead{
+  background:#3b82f6;
+  color:#fff;
+}
+
+.table th,
+.table td{
+  padding:12px 6px;
+  text-align:center;
+  border-bottom:1px solid #e6eef8;
+}
+
+.table th{
+  font-weight:700;
+  font-size:12px;
+}
+
+.table tbody tr:nth-child(even){
+  background:#f7fbff;
+}
+
+/* Highlight current level */
+.table tbody tr.current-level {
+  background: #d1fae5 !important;
+  color: #065f46;
+  font-weight: bold;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.level{
+  font-weight:700;
+  color:#1e3a8a;
+}
+
+/* Footer spacing */
+.footer-space{
+  height:30px;
+}
+
+/* === Swipe Levels Styles === */
+.swipe-container {
+  position: fixed;
+  top: 0;
+  left: 100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, #1e3a8a, #3b82f6, #22c1c3);
+  transition: left 0.4s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 40px;
+  color: #fff;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.swipe-container.active {
+  left: 0;
+}
+
+.swipe-level {
+  background: rgba(255,255,255,0.95);
+  padding: 40px;
+  border-radius: 25px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  text-align: center;
+  width: 95%;
+  max-width: 700px;
+  color: #1e3a8a;
+}
+
+.swipe-level img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 20px;
+}
+
+.swipe-level h2 {
+  font-size:36px;
+  font-weight:900;
+  margin-bottom: 20px;
+  color:#0f172a;
+}
+
+.swipe-level p {
+  margin: 12px 0;
+  font-size:18px;
+  line-height:1.6;
+}
+
+.swipe-level .price {
+  font-size:26px;
+  font-weight:800;
+  margin: 15px 0;
+  color: #3b82f6;
+}
+
+.swipe-level .note {
+  font-size:16px;
+  color:#334155;
+  text-align:justify;
+  margin-top:20px;
+}
+
+/* Join Now Button */
+.join-btn {
+  margin-top: 25px;
+  padding: 15px 30px;
+  font-size: 20px;
+  font-weight: bold;
+  border:none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.join-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+}
+
+/* Swipe hint */
+.swipe-hint {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  font-size:16px;
+  color:#000; /* black text */
+  font-weight:600;
+}
+
+.payment-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+.payment-popup.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-content {
+  background: #fff;
+  padding: 30px 25px;
+  border-radius: 20px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  transform: scale(0.8);
+  transition: transform 0.3s ease;
+}
+
+.payment-popup.active .popup-content {
+  transform: scale(1);
+}
+
+.popup-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+  .level-back-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  background:#eef6ff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.level-back-header i{
+  font-size:30px;
+  font-weight:900;
+  cursor:pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+/* Press down effect */
+.level-back-header i:active{
+  transform: translateY(3px) scale(0.95);
+  opacity: 0.7;
+}
+  
+  /* Remove mobile tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.level-back-header i {
+  -webkit-tap-highlight-color: transparent; /* specifically for the back arrow */
+  -webkit-touch-callout: none; /* prevents long press menu on iOS */
+  -webkit-user-select: none; /* prevents selection highlight */
+}
+  
+.yes-btn, .no-btn {
+  padding: 12px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.yes-btn { background: #10b981; color: #fff; }
+.no-btn { background: #ef4444; color: #fff; }
+</style>
+
+<script>
+  const selectBox = document.getElementById('selectBox');
+  const optionsContainer = document.getElementById('optionsContainer');
+  const searchBox = document.getElementById('bankSearch');
+  const optionsList = document.querySelectorAll('.option');
+  const manualBankInput = document.getElementById('manualBankInput');
+  const bindBtn = document.getElementById('bindCardBtn');
+  const bankPage = document.getElementById('bankCardPage');
+
+  selectBox.addEventListener('click', () => {
+    optionsContainer.classList.toggle('active');
+    searchBox.focus();
+  });
+
+  optionsList.forEach(option => {
+    option.addEventListener('click', () => {
+      const bankName = option.textContent;
+      const value = option.getAttribute('data-value');
+      selectBox.textContent = bankName;
+      selectBox.setAttribute('data-value', value);
+      optionsContainer.classList.remove('active');
+      manualBankInput.style.display = value === 'other' ? 'block' : 'none';
+    });
+  });
+
+  searchBox.addEventListener('input', () => {
+    const filter = searchBox.value.toLowerCase();
+    optionsList.forEach(option => {
+      const text = option.textContent.toLowerCase();
+      option.style.display = text.includes(filter) ? '' : 'none';
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.custom-select')) {
+      optionsContainer.classList.remove('active');
+    }
+  });
+
+  manualBankInput.addEventListener('input', () => {
+    selectBox.textContent = manualBankInput.value || "-- Select Bank --";
+  });
+
+  // Save form data to localStorage
+  function saveCardData(data) {
+    localStorage.setItem('boundCard', JSON.stringify(data));
+  }
+  function loadCardData() {
+    return JSON.parse(localStorage.getItem('boundCard'));
+  }
+
+  // Handle Bind Bank Card click
+  bindBtn.addEventListener('click', () => {
+    const name = document.getElementById('accountName').value.trim();
+    const bank = manualBankInput.style.display === 'block' ? manualBankInput.value.trim() : selectBox.textContent.trim();
+    const acct = document.getElementById('accountNumber').value.trim();
+
+    if (!name || !bank || acct.length !== 10) {
+      alert('Please fill all details correctly.');
+      return;
+    }
+
+    const maskedAcct = acct.slice(0,4) + ' **** **** ' + acct.slice(-4);
+    const maskedName = name[0] + '**' + name.slice(-1);
+    const data = { name, bank, acct, maskedAcct, maskedName };
+    saveCardData(data);
+    showBoundCard(data);
+  });
+
+  function showBoundCard(data) {
+    bankPage.innerHTML = `
+      <div class="header">
+        <span id="withdrawBackBtn" style="font-size:20px;cursor:pointer;">&lt;</span>
+        <h2>Bind bank card</h2>
+      </div>
+      <div class="card-container">
+        <div class="bank-card" style="background:linear-gradient(135deg,#3da8f4,#36d1dc);color:#fff;border-radius:15px;padding:20px;width:100%;box-shadow:0 3px 10px rgba(0,0,0,0.1);">
+          <h3>${data.bank}</h3>
+          <div class="card-number">${data.maskedAcct}</div>
+          <div class="card-holder">${data.maskedName}</div>
+        </div>
+      </div>
+      <div class="btn-section">
+        <div class="status" id="statusMsg">Binding succeeded</div>
+      </div>
+    `;
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      showDisabledForm(data);
+    });
+  }
+
+  function showDisabledForm(data) {
+    bankPage.innerHTML = `
+      <div class="withdraw-box disabled">
+        
+
+  // Load if card exists
+  const saved = loadCardData();
+  if (saved) {
+    showDisabledForm(saved);
+  }
+</script>
+  
+    <!-- Withdrawal Page -->
+   <div id="withdrawPage" class="page">
+  <div class="header" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+   <div class="back" id="withdrawBackBtn">&#x276E;</div>
+    <h3 style="margin:0;">Withdrawal</h3>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="nav-item active" data-tab="home"><i class="fa-solid fa-home"></i>Home</div>
+    <div class="nav-item" data-tab="task"><i class="fa-solid fa-tasks"></i>Task</div>
+    <div class="nav-item" data-tab="team"><i class="fa-solid fa-users"></i>Team<br>Management</div>
+    <div class="nav-item" data-tab="level"><i class="fa-solid fa-crown"></i>Level</div>
+    <div class="nav-item" data-tab="my"><i class="fa-solid fa-user"></i>My</div>
+  </div>
+</div>
+
+<script>
+  // Back button for withdrawal page
+document.getElementById('withdrawBackBtn').addEventListener('click', () => {
+  // Hide withdrawal page and return to "My" tab
+  document.getElementById('withdrawPage').classList.remove('active');
+  document.getElementById('my').style.display = 'block';
+
+  // Optionally make sure navbar highlights “My”
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('.nav-item[data-tab="my"]').classList.add('active');
+});
+const navItems=document.querySelectorAll('.nav-item');
+const tabs=document.querySelectorAll('.tab');
+const pages=document.querySelectorAll('.page');
+
+navItems.forEach(item=>{
+  item.addEventListener('click',()=>{
+    navItems.forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    tabs.forEach(tab=>tab.style.display='none');
+    document.getElementById(item.dataset.tab).style.display='block';
+    pages.forEach(p=>p.classList.remove('active'));
+  });
+});
+ 
+    // Open Team Management page
+document
+  .querySelector('.nav-item[data-tab="team"]')
+  .addEventListener('click', function () {
+    window.location.href = "team management.html";
+  });
+   
+function openPage(id){
+  tabs.forEach(tab=>tab.style.display='none');
+  pages.forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+updateUI();
+
+function updateUI(){
+  document.getElementById("todayIncome").innerText = stats.todayIncome;
+  document.getElementById("monthIncome").innerText = stats.monthIncome;
+  document.getElementById("revenue").innerText = stats.revenue;
+  document.getElementById("withdrawals").innerText = stats.withdrawals;
+  document.getElementById("balance").innerText = stats.balance;
+  document.getElementById("profit").innerText = stats.profit;
+  document.getElementById("tasksRemaining").innerText = stats.tasksRemaining;
+  document.getElementById("tasksCompleted").innerText = stats.tasksCompleted;
+  localStorage.setItem("stats", JSON.stringify(stats));
+}
+
+
+const loader = document.getElementById('loader');
+function updateLoaderVisibility(){
+  // show loader when offline
+  if(!navigator.onLine){
+    loader.style.display = 'flex';
+  } else {
+    loader.style.display = 'none';
+  }
+}
+// initial loader state
+updateLoaderVisibility();
+// listen for network changes
+window.addEventListener('online', updateLoaderVisibility);
+window.addEventListener('offline', updateLoaderVisibility);
+
+</script>
+  <!-- Logout confirmation popup -->
+<div id="logoutPopup" class="popup-overlay">
+  <div class="popup-box">
+    <p>Are you sure you want to log out?</p>
+    <div class="popup-buttons">
+      <button id="confirmLogout" class="yes">Yes</button>
+      <button id="cancelLogout" class="no">No</button>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    window.logout = function() {
+  const popup = document.getElementById("logoutPopup");
+  popup.style.display = "flex";
+
+  document.getElementById("cancelLogout").onclick = ()=> popup.style.display = "none";
+  document.getElementById("confirmLogout").onclick = ()=>{
+    popup.style.display = "none";
+    document.getElementById("userEmail").innerText = "Guest";
+    document.getElementById("userLevel").innerText = "Lv1";
+    localStorage.removeItem("user");
+    window.location.href = "Register.html";
+    };
+  };
+});
+</script>
+    <script>
+function loadTasks(){
+  const taskList = document.getElementById('taskList');
+  if(!taskList) return;
+  taskList.innerHTML = Array.from({length:20}).map((_,i)=>`
+    <div class="task">
+      <div class="thumb" style="background-image:url('https://picsum.photos/200/120?random=${i+1}');">
+        <div class="play-circle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M8 5v14l11-7L8 5z" fill="#1b1b1b"/>
+          </svg>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-left">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="badge">Lv1</span>
+            <div class="label">Reward price:</div>
+          </div>
+        </div>
+        <div class="price">
+          <span class="currency">NGN</span>
+          <span class="amount">+120.00</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+loadTasks();
+</script>
+    <script>
+function backToHome() {
+  // Hide company intro
+  document.getElementById("companyIntro").classList.remove("active");
+
+  // Show home tab
+  document.getElementById("home").style.display = "block";
+
+  // Update navbar highlight
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('.nav-item[data-tab="home"]').classList.add('active');
+}
+    // LEVEL DATA WITH TEMPORARY FIRST AND IMAGES
+const levels = [
+  {name:"Temporary", margin:"—", daily:"600", tasks:"5", commission:"120", monthly:"—", annual:"—", note:"Temporary level is perfect for beginners to familiarize themselves with basic tasks and workflow. It provides minimal commitment with a hands-on introduction to daily responsibilities and task handling.", image:"https://img.icons8.com/color/96/000000/blue-circle.png"},
+  {name:"Level 1", margin:"18,000", daily:"600", tasks:"5", commission:"120", monthly:"18,000", annual:"216,000", note:"Level 1 is ideal for newcomers who want to understand the fundamentals of the workflow. It offers a consistent income stream while allowing users to learn task management, basic commissions, and daily operational responsibilities. This level is foundational for professional growth and financial discipline.", image:"https://img.icons8.com/color/96/000000/silver-medal.png"},
+  {name:"Level 2", margin:"50,400", daily:"1,680", tasks:"10", commission:"168", monthly:"50,400", annual:"604,800", note:"Level 2 is designed for employees who have grasped the basics and are ready to expand their efficiency. The increased margin rate and task volume develop analytical and strategic skills. This level fosters a professional approach to time management, productivity, and client engagement.", image:"https://img.icons8.com/color/96/000000/bronze-medal.png"},
+  {name:"Level 3", margin:"151,200", daily:"5,040", tasks:"20", commission:"252", monthly:"151,200", annual:"1,814,400", note:"At Level 3, the focus is on scaling operations, improving task accuracy, and maximizing income potential. Professionals at this stage are expected to take initiative, contribute innovative solutions, and enhance their strategic decision-making skills, preparing for managerial responsibilities.", image:"https://img.icons8.com/color/96/000000/gold-medal.png"},
+  {name:"Level 4", margin:"448,000", daily:"16,000", tasks:"50", commission:"320", monthly:"480,000", annual:"5,840,000", note:"Level 4 provides advanced earning opportunities while emphasizing leadership, project oversight, and team collaboration. Employees are expected to mentor others, optimize workflow, and demonstrate significant business acumen. This level prepares individuals for senior and executive-level roles.", image:"https://img.icons8.com/color/96/000000/diamond.png"},
+  {name:"Level 5", margin:"1,162,000", daily:"41,600", tasks:"80", commission:"520", monthly:"1,248,000", annual:"15,184,000", note:"Level 5 is reserved for high-performing individuals who consistently achieve exceptional results. It enhances strategic thinking, decision-making, and complex problem-solving abilities. Employees at this level are key drivers of growth, innovation, and profitability.", image:"https://img.icons8.com/color/96/000000/golden-trophy.png"},
+  {name:"Level 6", margin:"2,925,000", daily:"112,200", tasks:"110", commission:"1,020", monthly:"3,366,000", annual:"40,953,000", note:"Level 6 represents elite performance, with responsibilities that include managing multiple projects, optimizing large-scale operations, and mentoring high-potential employees. Professionals here set benchmarks for efficiency and drive organizational success.", image:"https://img.icons8.com/color/96/000000/crown.png"},
+  {name:"Level 7", margin:"5,720,000", daily:"222,000", tasks:"150", commission:"1,480", monthly:"6,660,000", annual:"81,030,000", note:"Level 7 is for top-tier employees with comprehensive mastery of operations and strategic leadership. This level emphasizes innovation, cross-departmental collaboration, and measurable impact on company performance. High-level decision-making and mentoring define this stage.", image:"https://img.icons8.com/color/96/000000/diamond-crown.png"},
+  {name:"Level 8", margin:"11,520,000", daily:"478,800", tasks:"190", commission:"2,520", monthly:"14,364,000", annual:"174,762,000", note:"Level 8 represents advanced strategic leadership, overseeing critical operations and ensuring the organization's long-term sustainability. Employees focus on executive-level decision-making, optimization of large teams, and creating frameworks for high performance and profitability.", image:"https://img.icons8.com/color/96/000000/gold-medal.png"},
+  {name:"Level 9", margin:"20,700,000", daily:"862,500", tasks:"250", commission:"3,450", monthly:"25,875,000", annual:"314,812,500", note:"Level 9 is the pinnacle of professional achievement, reserved for visionary leaders who drive transformative growth. Responsibilities include company-wide strategy, high-stakes decision-making, mentoring future leaders, and achieving exceptional organizational results. The role demands exemplary leadership, foresight, and unparalleled performance.", image:"https://img.icons8.com/color/96/000000/golden-trophy.png"}
+];
+
+let currentLevel = 0;
+const swipeContainer = document.getElementById("swipeContainer");
+const swipeLevel = document.getElementById("swipeLevel");
+
+function showLevel(index){
+  if(index < 0 || index >= levels.length) return;
+  const level = levels[index];
+  swipeLevel.innerHTML = `
+    <img src="${level.image}" alt="${level.name} icon"/>
+    <h2>${level.name}</h2>
+    <p><strong>Margin Rate:</strong> ${level.margin}</p>
+    <p><strong>Daily Income:</strong> ${level.daily}</p>
+    <p><strong>Total Daily Tasks:</strong> ${level.tasks}</p>
+    <p><strong>Commission / Task:</strong> ${level.commission}</p>
+    <p class="price"><strong>Monthly Income:</strong> ${level.monthly} | <strong>Annual Income:</strong> ${level.annual}</p>
+    <p class="note">${level.note}</p>
+    ${level.name !== "Temporary"
+  ? `<button class="join-btn" onclick="confirmPayment('${level.name.replace('Level ', 'V')}')">
+       Join Now
+     </button>`
+  : ''}
+  `;
+  swipeContainer.classList.add("active");
+}
+
+ const paymentPopup = document.getElementById("paymentPopup");
+const popupMessage = document.getElementById("popupMessage");
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+  
+  // LEVEL RANKING (order matters)
+const levelRank = {
+  Temporary: 0,
+  V1: 1,
+  V2: 2,
+  V3: 3,
+  V4: 4,
+  V5: 5,
+  V6: 6,
+  V7: 7,
+  V8: 8,
+  V9: 9
+};
+  
+// Swipe detection
+let startX = 0;
+let endX = 0;
+
+document.addEventListener('touchstart', e => {
+  startX = e.changedTouches[0].screenX;
+});
+
+  let userCurrentLevel = localStorage.getItem("userCurrentLevel") || "Temporary";
+  
+  const levelPrices = {
+  V1: 18000,
+  V2: 50400,
+  V3: 151200,
+  V4: 448000,
+  V5: 1162000,
+  V6: 2925000,
+  V7: 5720000,
+  V8: 11520000,
+  V9: 20700000
+};
+  // Example: assume wallet balance is accessible globally
+let userBalance = 5000000; // replace this with your actual wallet code, maybe from window.localStorage or API
+
+  const insufficientPopup = document.getElementById("insufficientPopup");
+const insufficientMessage = document.getElementById("insufficientMessage");
+const insufficientOk = document.getElementById("insufficientOk");
+
+const successPopup = document.getElementById("successPopup");
+const successMessage = document.getElementById("successMessage");
+const successOk = document.getElementById("successOk");
+
+   function confirmPayment(levelCode) {
+  const price = levelPrices[levelCode];
+     
+  // 🔴 Block downgrade
+  if (levelRank[levelCode] <= levelRank[userCurrentLevel]) {
+    insufficientMessage.textContent =
+      "You cannot join a lower or the same level.";
+    insufficientPopup.classList.add("active");
+    insufficientOk.onclick = () => insufficientPopup.classList.remove("active");
+    return;
+  }
+
+  // 🔴 Insufficient balance
+  if (userBalance < price) {
+    insufficientMessage.textContent =
+      `Insufficient balance! You need ₦${price.toLocaleString()}.`;
+    insufficientPopup.classList.add("active");
+    insufficientOk.onclick = () => insufficientPopup.classList.remove("active");
+    return;
+  }
+
+  // ⚪ Confirm
+  popupMessage.textContent =
+    `Do you want to join ${levelCode} for ₦${price.toLocaleString()}?`;
+  paymentPopup.classList.add("active");
+
+  yesBtn.onclick = () => {
+    paymentPopup.classList.remove("active");
+
+    userBalance -= price;
+    userCurrentLevel = levelCode;
+    localStorage.setItem("userCurrentLevel", levelCode);
+
+    successMessage.textContent = `You are now on ${levelCode}`;
+    successPopup.classList.add("active");
+    successOk.onclick = () => successPopup.classList.remove("active");
+
+    const oldRow = document.querySelector(".current-level");
+    if (oldRow) oldRow.classList.remove("current-level");
+
+    const newRow = [...document.querySelectorAll(".table tbody tr")]
+      .find(tr => tr.querySelector(".level").textContent === levelCode);
+
+    if (newRow) newRow.classList.add("current-level");
+
+    swipeContainer.classList.remove("active");
+  };
+
+  noBtn.onclick = () => paymentPopup.classList.remove("active");
+}
+
+  
+document.addEventListener('touchend', e => {
+  endX = e.changedTouches[0].screenX;
+  let diff = endX - startX;
+
+  if(diff > 50){ // swipe right -> next level
+    if(currentLevel < levels.length){
+      showLevel(currentLevel);
+      currentLevel++;
+    }
+  } else if(diff < -50){ // swipe left -> previous level
+    if(currentLevel > 1){
+      currentLevel -= 2;
+      showLevel(currentLevel);
+      currentLevel++;
+    } else if(currentLevel === 1){
+      currentLevel = 0;
+      swipeContainer.classList.remove("active");
+    }
+  }
+});
+  // Restore current level highlight on page load
+window.addEventListener("load", () => {
+  const savedLevel = localStorage.getItem("userCurrentLevel") || "Temporary";
+
+  const oldRow = document.querySelector(".current-level");
+  if (oldRow) oldRow.classList.remove("current-level");
+
+  const row = Array.from(document.querySelectorAll(".table tbody tr"))
+    .find(tr => tr.querySelector(".level").textContent === savedLevel);
+
+  if (row) row.classList.add("current-level");
+
+  userCurrentLevel = savedLevel;
+});
+  // BACK ARROW — GO TO MAIN PAGE
+document.getElementById("levelBack").addEventListener("click", () => {
+  window.location.href = "my project.html";
+});
+</script>
+</body>
+</html>
+    s

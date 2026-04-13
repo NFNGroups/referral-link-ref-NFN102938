@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFN Watch & Earn - Splash</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    height:100%;
+    overflow:hidden;
+  }
+
+  body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: radial-gradient(circle at center, #001f3f, #0072ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color:#fff;
+    position: relative;
+    text-align: center;
+    transition: opacity 1s ease-in-out;
+  }
+
+  .particle {
+    position: absolute;
+    width:6px;
+    height:6px;
+    background: rgba(255,255,255,0.8);
+    border-radius:50%;
+    animation: float 6s linear infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0) scale(0.5);}
+    100% { transform: translateY(-50vh) translateX(50vw) scale(1);}
+  }
+
+  .logo-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    width:160px;
+    height:160px;
+    border-radius:50%;
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 60px;
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    animation: logoPulse 2s infinite alternate;
+    position: relative;
+    z-index:1;
+  }
+
+  @keyframes logoPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1) rotate(-2deg);}
+    100% { transform: scale(1) rotate(2deg);}
+  }
+
+  /* Bars top right */
+  .bars {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display:flex;
+    align-items:flex-end; /* important for bottom-to-top */
+    gap:4px;
+    z-index:2;
+  }
+
+  .bar {
+    width:8px;
+    height:10px;
+    background: red;
+    border-radius:3px;
+    transform-origin: bottom; /* grow from bottom */
+    animation: grow 1s infinite ease-in-out;
+    transition: background 0.3s ease;
+  }
+
+  /* Different animation timing for each bar */
+  .bar:nth-child(1){ animation-delay:0s; }
+  .bar:nth-child(2){ animation-delay:0.2s; }
+  .bar:nth-child(3){ animation-delay:0.4s; }
+  .bar:nth-child(4){ animation-delay:0.6s; }
+  .bar:nth-child(5){ animation-delay:0.8s; }
+
+  @keyframes grow {
+    0%   { height:10px; }
+    50%  { height:35px; }
+    100% { height:10px; }
+  }
+
+  h1 { margin-top:24px; font-size:36px; text-shadow:0 2px 6px rgba(0,0,0,0.4); }
+  p { max-width:600px; margin:16px auto; font-size:18px; line-height:1.5; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
+
+  #status { margin-top:16px; font-size:16px; font-weight:600; }
+
+  .dots::after {
+    content: '';
+    display:inline-block;
+    width:1em;
+    text-align:left;
+    animation: dots 1s steps(5,end) infinite;
+  }
+
+  @keyframes dots {
+    0%,20%{content:'';}
+    40%{content:'.';}
+    60%{content:'..';}
+    80%,100%{content:'...';}
+  }
+
+  @media(max-width:600px){
+    .logo-container { width:120px; height:120px; }
+    .logo { width:120px; height:120px; font-size:48px; }
+    h1 { font-size:28px; }
+    p { font-size:14px; max-width:320px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="logo-container">
+  <div class="logo">NFN</div>
+</div>
+
+<div class="bars">
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+</div>
+
+<h1>NFN Watch & Earn</h1>
+<p>Watch videos, complete tasks, invite friends, and earn real rewards securely.<br>
+The premium platform designed for serious earners.</p>
+
+<div id="status" class="dots">Checking Internet connection</div>
+
+<script>
+  for(let i=0;i<60;i++){
+    const p = document.createElement('div');
+    p.classList.add('particle');
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.top = Math.random()*100 + 'vh';
+    p.style.width = p.style.height = (Math.random()*4 + 2) + 'px';
+    p.style.animationDuration = (Math.random()*5 + 4) + 's';
+    document.body.appendChild(p);
+  }
+
+  const status = document.getElementById('status');
+  const bars = document.querySelectorAll('.bar');
+
+  let splashStart = Date.now();
+  let redirected = false;
+
+  function setBarsColor(color){
+    bars.forEach(bar => bar.style.background = color);
+  }
+
+  function checkInternet() {
+    const elapsed = (Date.now() - splashStart)/1000;
+
+    if(navigator.onLine){
+      setBarsColor("limegreen");
+
+      if(!redirected && elapsed >=7){
+        redirected = true;
+        status.textContent = 'Internet detected! Loading';
+        document.body.style.opacity = 0;
+        setTimeout(()=> window.location.href='Register.html', 1000);
+      } else if(!redirected){
+        status.textContent = 'Preparing app...';
+        setTimeout(checkInternet, 1000);
+      }
+
+    } else {
+
+      setBarsColor("red");
+
+      if(elapsed > 10){
+        status.textContent = 'Taking longer than usual… please check your Internet connection';
+      } else {
+        status.textContent = 'Checking your Internet connection';
+        setTimeout(checkInternet, 2000);
+      }
+    }
+  }
+
+  checkInternet();
+
+  window.addEventListener('online', () => {
+    setBarsColor("limegreen");
+    checkInternet();
+  });
+
+  window.addEventListener('offline', () => {
+    setBarsColor("red");
+    status.textContent = 'No Internet connection';
+  });
+</script>
+
+</body>
+</html>
