@@ -433,14 +433,14 @@ const loginPage = document.getElementById('loginPage');
 document.getElementById('toLogin').addEventListener('click', ()=>{registerPage.classList.add('hidden'); loginPage.classList.remove('hidden');});    
 document.getElementById('toRegister').addEventListener('click', ()=>{loginPage.classList.add('hidden'); registerPage.classList.remove('hidden');});    
 
-const firebaseConfig = {    
-  apiKey:"AIzaSyA7DA2nxR5WvPwwL_QW5HgSaW7JxQqPeIs",    
-  authDomain:"nfn-groups.firebaseapp.com",    
-  projectId:"nfn-groups",    
-  storageBucket:"nfn-groups.appspot.com",    
-  messagingSenderId:"276039205386",    
-  appId:"1:276039205386:web:cd7c5a7248f264427815f3"    
-};    
+const firebaseConfig = {
+  apiKey: "AIzaSyCquibboUmxu5JoDxwmAqwDq-L0Zt2R_jY",
+  authDomain: "nfn---groups.firebaseapp.com",
+  projectId: "nfn---groups",
+  storageBucket: "nfn---groups.firebasestorage.app",
+  messagingSenderId: "495471996349",
+  appId: "1:495471996349:web:4f87f3fba91a26bf91f6d4",
+};
 
 firebase.initializeApp(firebaseConfig);    
 const auth = firebase.auth();    
